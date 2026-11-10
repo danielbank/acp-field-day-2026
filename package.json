@@ -1,0 +1,22 @@
+{
+  "name": "robo-dodge",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A tiny dodge-the-falling-things browser game for live classroom vibe coding.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "build:offline": "vite build --mode offline",
+    "preview": "vite preview --host",
+    "check": "node scripts/check.js",
+    "session": "node scripts/session.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "vite": "8.3.5",
+    "vite-plugin-singlefile": "2.3.4"
+  }
+}
