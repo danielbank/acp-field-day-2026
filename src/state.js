@@ -4,6 +4,7 @@
 import { CONFIG } from './config.js';
 import { createHero, flap } from './entities/hero.js';
 import { unlockAudio, playSound, toggleMute } from './audio.js';
+import { fireLaser } from './lasers.js';
 
 const BEST_SCORE_KEY = 'robo-dodge-best';
 
@@ -17,6 +18,9 @@ export function resetRound() {
   Object.assign(state, {
     hero: createHero(),
     fallers: [],
+    lasers: [],          // laser beams on screen right now
+    pops: [],            // star puffs from bonked things
+    laserCooldown: 0,
     boss: null,
     bossDone: false,
     score: 0,
@@ -48,7 +52,7 @@ export function endRound() {
 }
 
 // The screen state machine: what each action does on each screen.
-// Actions come from input.js: 'start', 'tap', 'pause', 'mute', 'blur'.
+// Actions come from input.js: 'start', 'tap', 'fire', 'pause', 'mute', 'blur'.
 export function handleAction(action) {
   if (action === 'mute') return toggleMute();
   const screen = state.screen;
@@ -60,6 +64,8 @@ export function handleAction(action) {
   } else if (screen === 'playing' && action === 'start') {
     flap(state.hero);
     playSound('flap');
+  } else if (screen === 'playing' && (action === 'tap' || action === 'fire')) {
+    fireLaser();
   } else if (screen === 'playing' && (action === 'pause' || action === 'blur')) {
     state.screen = 'paused';
   } else if (screen === 'paused' && (action === 'pause' || action === 'start' || action === 'tap')) {

@@ -7,6 +7,7 @@ import { isMuted } from './audio.js';
 import { drawRobot, drawGround, drawCockpit, horizonY } from './entities/hero.js';
 import { drawFaller } from './entities/faller.js';
 import { drawBoss } from './entities/boss.js';
+import { drawLasers } from './lasers.js';
 
 // Fills in {hero}, {things} and {level} in text from config.js
 const fill = (str) => str.replace('{hero}', CONFIG.hero.name).replace('{things}', CONFIG.faller.name)
@@ -51,6 +52,7 @@ export function drawWorld(ctx) {
   if (state.boss) drawBoss(ctx, state.boss);
   ctx.restore();
   drawCockpit(ctx, state.hero);
+  drawLasers(ctx);
 }
 
 export function drawHUD(ctx) {

@@ -35,6 +35,16 @@ export const CONFIG = {
     crosshairColor: '#7dffb3',    // Aiming crosshair color
   },
 
+  // ---- Lasers (click or F to fire) ----
+  laser: {
+    color: '#ff4fd8',             // Laser beam color
+    popColor: '#ffe066',          // Color of the stars when something gets bonked
+    cooldown: 0.15,               // Seconds between shots (smaller = faster firing)
+    beamSeconds: 0.1,             // How long each beam stays on screen
+    aimForgiveness: 20,           // Extra pixels around targets that still count as a hit
+    pointsPerBonk: 25,            // Points for bonking something with a laser
+  },
+
   // ---- The things that fall ----
   faller: {
     name: 'asteroids',            // What we call the falling things (used in on-screen text)
@@ -73,7 +83,7 @@ export const CONFIG = {
     title: 'SKY BOARD SHOWDOWN',                  // Big title on the start screen
     subtitle: 'Help {hero} fly the skateboard!',   // {hero} and {things} get filled in automatically
     start: 'Press SPACE to start',                // Start instructions
-    controls: 'SPACE flap   ·   mouse or arrows aim   ·   P pause   ·   M mute', // Controls hint
+    controls: 'SPACE flap  ·  mouse/arrows aim  ·  click or F fire  ·  P pause  ·  M mute', // Controls hint
     paused: 'PAUSED',                             // Pause screen
     resume: 'Press P to keep playing',            // Pause screen hint
     gameOver: 'GAME OVER',                        // Game over title

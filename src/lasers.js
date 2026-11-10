@@ -1,0 +1,73 @@
+// lasers.js — zap! Click (or F) fires twin lasers from the skateboard at the crosshair.
+// Lasers hit instantly where you aim; whatever is there gets bonked into a puff of stars.
+
+import { CONFIG } from './config.js';
+import { state } from './state.js';
+import { playSound } from './audio.js';
+import { horizonY } from './entities/hero.js';
+
+export function fireLaser() {
+  const L = CONFIG.laser;
+  const hero = state.hero;
+  if (state.laserCooldown > 0) return;
+  state.laserCooldown = L.cooldown;
+  state.lasers.push({ x: hero.aimX, y: hero.aimY, timeLeft: L.beamSeconds });
+  playSound('laser');
+
+  // did we hit anything? (things in the world bob with the horizon, so shift them the same way)
+  const shift = horizonY(hero) - CONFIG.height / 2;
+  const target = state.fallers.find((f) =>
+    Math.hypot(f.x - hero.aimX, f.y + shift - hero.aimY) < f.r + L.aimForgiveness);
+  if (!target) return;
+  state.fallers = state.fallers.filter((f) => f !== target);
+  state.score += L.pointsPerBonk;
+  state.pops.push({ x: target.x, y: target.y + shift, timeLeft: 0.5 });
+  playSound('zapBonk');
+}
+
+export function updateLasers(dt) {
+  state.laserCooldown = Math.max(0, state.laserCooldown - dt);
+  for (const b of state.lasers) b.timeLeft -= dt;
+  for (const p of state.pops) p.timeLeft -= dt;
+  state.lasers = state.lasers.filter((b) => b.timeLeft > 0);
+  state.pops = state.pops.filter((p) => p.timeLeft > 0);
+}
+
+export function drawLasers(ctx) {
+  const L = CONFIG.laser;
+  const W = CONFIG.width, H = CONFIG.height;
+  // twin beams from the board's nose to where you aimed
+  ctx.strokeStyle = L.color;
+  ctx.lineCap = 'round';
+  for (const b of state.lasers) {
+    ctx.lineWidth = 10 * (b.timeLeft / L.beamSeconds);
+    ctx.beginPath();
+    ctx.moveTo(W / 2 - 70, H - 90);
+    ctx.lineTo(b.x, b.y);
+    ctx.moveTo(W / 2 + 70, H - 90);
+    ctx.lineTo(b.x, b.y);
+    ctx.stroke();
+  }
+  // "bonk!" puffs of stars that spread out and fade
+  ctx.fillStyle = L.popColor;
+  for (const p of state.pops) {
+    const grow = 1 - p.timeLeft / 0.5;
+    ctx.globalAlpha = p.timeLeft / 0.5;
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2;
+      drawStar(ctx, p.x + Math.cos(a) * grow * 60, p.y + Math.sin(a) * grow * 60, 9);
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawStar(ctx, x, y, r) {
+  ctx.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const a = (i / 10) * Math.PI * 2 - Math.PI / 2;
+    const len = i % 2 === 0 ? r : r * 0.45;
+    ctx.lineTo(x + Math.cos(a) * len, y + Math.sin(a) * len);
+  }
+  ctx.closePath();
+  ctx.fill();
+}

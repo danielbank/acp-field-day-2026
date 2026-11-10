@@ -38,6 +38,8 @@ const SOUNDS = {
   flip:     () => { tone(200, 1200, 0.35, 'sine'); },
   boss:     () => { tone(90, 60, 0.8, 'sawtooth'); tone(120, 80, 0.8, 'square', 0.1); },
   bonus:    () => { tone(784, 1568, 0.3, 'triangle'); },
+  laser:    () => { tone(1400, 300, 0.12, 'sawtooth'); },                     // "pew!"
+  zapBonk:  () => { tone(600, 1200, 0.1); tone(900, 1800, 0.12, 'triangle', 0.05); },
   flap:     () => { tone(500, 850, 0.08, 'triangle'); },                     // "whoosh" up
 };
 

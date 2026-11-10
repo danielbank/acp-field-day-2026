@@ -8,7 +8,7 @@ export const input = { left: false, right: false, up: false, down: false, aimX: 
 const actions = [];
 const MOVE_KEYS = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right',
                     ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down' };
-const ACTION_KEYS = { Space: 'start', Enter: 'start', KeyP: 'pause', KeyM: 'mute' };
+const ACTION_KEYS = { Space: 'start', Enter: 'start', KeyP: 'pause', KeyM: 'mute', KeyF: 'fire' };
 
 export function setupInput(canvas) {
   window.addEventListener('keydown', (e) => {

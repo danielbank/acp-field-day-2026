@@ -10,6 +10,7 @@ import { spawnFaller, updateFaller, isOffScreen } from './entities/faller.js';
 import { updateBoss, bossHitRadius } from './entities/boss.js';
 import { circleHitsHero } from './collision.js';
 import { updateTwists } from './twists.js';
+import { updateLasers } from './lasers.js';
 
 export function updateGame(realDt) {
   updateTwists(realDt);
@@ -36,6 +37,7 @@ export function updateGame(realDt) {
   // move everything
   if (updateHero(state.hero, dt, input)) bonk();   // scraped the ground: ouch!
   for (const f of state.fallers) updateFaller(f, dt);
+  updateLasers(dt);
   if (state.boss) updateBoss(state.boss, dt);
 
   // falling things are just scenery for now (dinos you can bonk come later)
