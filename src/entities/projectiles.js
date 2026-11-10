@@ -3,16 +3,18 @@
 
 import { CONFIG } from '../config.js';
 import { state } from '../state.js';
-import { heroDamage, heroEnchants, damageMob, hurtHero, canBeHit } from '../combat.js';
+import { heroEnchants, damageMob, hurtHero, canBeHit } from '../combat.js';
 import { toScreen, dist } from '../view.js';
+import { hitsProp } from './props.js';
+import { spawnEmbers } from '../effects.js';
 
-export function fireHeroBolt(hero, angle, big) {
+export function fireHeroBolt(hero, angle, big, damage) {
   const speed = CONFIG.roles.zapper.boltSpeed;
   state.projectiles.push({
-    owner: 'hero', kind: hero.flameSword ? 'fireball' : 'bolt',
+    owner: 'hero', kind: hero.flameSword ? 'fireball' : hero.elementalSword ? 'lightning' : 'bolt',
     x: hero.x + Math.cos(angle) * 24, y: hero.y + Math.sin(angle) * 24, z: 38,
     vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
-    r: big ? 15 : 9, damage: heroDamage(hero) * (big ? 1.5 : 1), enchants: heroEnchants(hero),
+    r: big ? 16 : 9, damage, enchants: heroEnchants(hero),
     pierce: big, life: big ? 0.8 : 1.2, hit: new Set(),
   });
 }
@@ -33,6 +35,10 @@ export function updateProjectiles(dt) {
     p.y += p.vy * dt;
     p.life -= dt;
     if (p.x < 0 || p.x > A.width || p.y < 0 || p.y > A.depth) p.life = 0;
+    if (p.life > 0 && hitsProp(p.x, p.y, p.z)) {       // smack into a pillar or crate
+      p.life = 0;
+      spawnEmbers(p.x, p.y, p.z);
+    }
     if (p.life <= 0) continue;
     if (p.owner === 'hero') hitMobs(p);
     else if (dist(p, state.hero) < p.r + state.hero.r) {
@@ -55,17 +61,19 @@ function hitMobs(p) {
 const COLORS = {
   bolt: ['#4cc9f0', '#ffffff'],
   fireball: ['#ff7b00', '#ffee32'],
+  lightning: ['#ffee32', '#ffffff'],
   spark: ['#ff9f1c', '#fff3b0'],
   flame: ['#ff5400', '#ffd000'],
 };
 
 export function drawProjectile(ctx, p) {
   const s = toScreen(p.x, p.y, p.z);
+  if (s.s <= 0) return;
   const [outer, inner] = COLORS[p.kind];
-  let r = p.r;
+  let r = p.r * s.s;
   if (p.kind === 'flame') {
     const age = 1 - p.life / p.born;
-    r = p.r * (0.6 + age * 1.4);
+    r = p.r * s.s * (0.6 + age * 1.4);
     ctx.globalAlpha = 1 - age * 0.7;
   }
   ctx.fillStyle = outer;

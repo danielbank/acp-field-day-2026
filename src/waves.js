@@ -4,10 +4,13 @@
 import { CONFIG } from './config.js';
 import { state, showBanner } from './state.js';
 import { playSound } from './audio.js';
-import { rand, pick } from './view.js';
+import { rand, clamp } from './view.js';
+import { hitsProp } from './entities/props.js';
 import { createMob } from './entities/mobs.js';
 import { createDragon } from './entities/dragon.js';
 import { spawnStars } from './effects.js';
+
+const S = CONFIG.shop;
 
 export function updateWaves(dt) {
   if (state.waveState === 'break') {
@@ -16,7 +19,7 @@ export function updateWaves(dt) {
   } else if (state.waveState === 'fighting') {
     state.spawnTimer -= dt;
     if (state.spawnQueue.length && state.spawnTimer <= 0 && state.mobs.length < CONFIG.maxMobsAtOnce) {
-      spawnAtEdge(state.spawnQueue.pop());
+      spawnNearHero(state.spawnQueue.pop());
       state.spawnTimer = CONFIG.spawnEverySeconds;
     }
     if (!state.spawnQueue.length && !state.mobs.length) waveCleared();
@@ -55,17 +58,20 @@ function waveCleared() {
   playSound('victory');
 }
 
-// Mobs pop in at the edges of the arena (but not inside the shop corner).
-function spawnAtEdge(kind) {
+// Mobs pop in around you (just out of reach), never inside a pillar or the shop.
+function spawnNearHero(kind) {
   const A = CONFIG.arena;
-  const side = pick(['left', 'right', 'front', 'back']);
-  let x = rand(40, A.width - 40);
-  let y = rand(40, A.depth - 40);
-  if (side === 'left') x = 30;
-  if (side === 'right') x = A.width - 30;
-  if (side === 'front') y = A.depth - 30;
-  if (side === 'back') { y = 30; x = rand(260, A.width - 40); }
-  if (side === 'left' && y < 160) y = rand(160, A.depth - 40);
+  const hero = state.hero;
+  let x = 0;
+  let y = 0;
+  for (let tries = 0; tries < 20; tries++) {
+    const a = rand(0, Math.PI * 2);
+    const d = rand(CONFIG.spawnMinDistance, CONFIG.spawnMaxDistance);
+    x = clamp(hero.x + Math.cos(a) * d, 40, A.width - 40);
+    y = clamp(hero.y + Math.sin(a) * d, 40, A.depth - 40);
+    const inShop = x > S.x - 40 && x < S.x + S.w + 40 && y > S.y - 40 && y < S.y + S.h + 40;
+    if (!inShop && !hitsProp(x, y, 0) && Math.hypot(x - hero.x, y - hero.y) > 250) break;
+  }
   state.mobs.push(createMob(kind, x, y, state.loop));
   spawnStars(x, y, 10, 4);
 }

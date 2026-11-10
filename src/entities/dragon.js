@@ -10,13 +10,15 @@ import { fireMobShot } from './projectiles.js';
 import { createMob } from './mobs.js';
 import { spawnSword } from './pickups.js';
 import { addRing } from '../effects.js';
+import { blockProps } from './props.js';
 
 const D = CONFIG.dragon;
 
 export function createDragon(loop) {
   const hp = D.hp * (1 + (loop - 1) * CONFIG.newGamePlus.hpBoostPerLoop);
   return {
-    kind: 'dragon', x: CONFIG.arena.width / 2, y: 260, z: D.diveHeight, r: D.size,
+    kind: 'dragon', z: D.diveHeight, r: D.size,
+    x: clamp(state.hero.x, D.size, CONFIG.arena.width - D.size), y: clamp(state.hero.y - 380, 200, CONFIG.arena.depth - 100),
     hp, maxHp: hp, damage: D.touchDamage, coins: D.coins, points: D.points,
     t: 0, vx: 0, vy: 0, burn: 0, chill: 0, flash: 0, spikeCd: 0, facing: 1, dead: false,
     // it starts by crashing down from the sky
@@ -56,6 +58,7 @@ export function updateDragon(d, dt, slow) {
   PHASES[d.phase](d, dt, slow, hero);
   d.x = clamp(d.x, d.r, CONFIG.arena.width - d.r);
   d.y = clamp(d.y, 140, CONFIG.arena.depth - 60);
+  if (d.z < 30) blockProps(d);
   if (d.z < 30 && dist(d, hero) < d.r * 0.8 + hero.r) hurtHero(D.touchDamage, d);
 }
 

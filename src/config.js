@@ -8,19 +8,49 @@ export const CONFIG = {
   backgroundColor: '#140b24',     // Color around the arena
   font: 'system-ui, "Segoe UI", Arial, sans-serif', // Built-in fonts only (no downloads)
 
-  // ---- The arena (2.5D: the floor is tilted away from you) ----
+  // ---- The arena: a 3D world (the characters are flat 2D drawings) ----
   arena: {
-    width: 900,                   // Arena size left-to-right
-    depth: 720,                   // Arena size front-to-back
-    tilt: 0.6,                    // How squished the floor looks (1 = looking straight down)
-    left: 30,                     // Where the arena starts on screen (pixels from the left)
-    top: 175,                     // Where the back edge of the floor is on screen
-    tileSize: 76,                 // Size of the floor tiles
-    floorColor: '#3c2a63',        // Floor tile color
-    floorColor2: '#33234f',       // Other floor tile color (checkerboard)
-    wallColor: '#5a189a',         // Arena wall color
-    wallTopColor: '#9d4edd',      // Top edge of the walls
+    width: 2400,                  // Arena size left-to-right
+    depth: 1800,                  // Arena size back-to-front
+    tileSize: 100,                // Size of the stone floor tiles
+    floorColor: '#5b5470',        // Stone tile color
+    mossColor: '#4f6b4a',         // Mossy tiles
+    groutColor: '#2a2438',        // Lines between tiles
+    outsideColor: '#2d3b2a',      // Grass outside the walls
+    wallColor: '#6c6380',         // Castle wall stone
+    wallHeight: 120,              // How tall the walls are
+    mossyTiles: 0.12,             // How many floor tiles are mossy (0.12 = 12%)
   },
+
+  // ---- The camera ----
+  view: {
+    pitchDegrees: 52,             // How steeply the camera looks down (90 = straight down)
+    height: 900,                  // How high up the camera floats
+    focal: 820,                   // Zoom (bigger = more zoomed in)
+    spriteScale: 1.35,            // Draw characters this much bigger than their real size (easier to see)
+    centerY: 0.56,                // Where the knight sits on screen (0 = top, 1 = bottom)
+    followSpeed: 6,               // How quickly the camera catches up with you
+    edgeMarginX: 450,             // Camera stops sliding this close to the side walls
+    edgeMarginBack: 300,          // ...and the back wall
+    edgeMarginFront: 150,         // ...and the front wall
+    fogStart: 1300,               // Fog starts this far away
+    fogEnd: 3200,                 // ...and is thickest here
+    fogMax: 0.7,                  // How thick the fog gets (0 = none, 1 = can't see)
+    fogColor: '#1c1430',          // Fog / sky color
+  },
+
+  // ---- Stone pillars and crates that block the way (and stop bolts) ----
+  props: [
+    { type: 'pillar', x: 900, y: 420 }, { type: 'pillar', x: 1500, y: 420 },
+    { type: 'pillar', x: 320, y: 900 }, { type: 'pillar', x: 2080, y: 900 },
+    { type: 'pillar', x: 900, y: 1280 }, { type: 'pillar', x: 1500, y: 1280 },
+    { type: 'broken', x: 640, y: 260 }, { type: 'broken', x: 1760, y: 1640 },
+    { type: 'crate', x: 380, y: 1640 }, { type: 'crate', x: 450, y: 1660 }, { type: 'crate', x: 410, y: 1580 },
+    { type: 'crate', x: 2010, y: 240 }, { type: 'crate', x: 2080, y: 260 },
+    { type: 'crate', x: 1180, y: 1700 },
+  ],
+  propSizes: { pillar: 38, broken: 38, crate: 30 },   // how wide each kind is
+  propHeights: { pillar: 230, broken: 80, crate: 60 },  // how tall each kind is
 
   // ---- The robot knight (you!) ----
   hero: {
@@ -30,36 +60,46 @@ export const CONFIG = {
     grip: 14,                     // How quickly you start and stop (bigger = snappier)
     oilGrip: 1.3,                 // Grip on oil slicks (tiny = super slippery!)
     drawScale: 1.15,              // How big the knight is drawn
+    startX: 1200, startY: 920,    // Where you start
   },
 
   // ---- Roles: pick one before you play ----
+  // light = click (quick, low damage)  ·  heavy = right-click or E (big Power Swing / Mega Bolt)
   roles: {
     bonker: {
       label: 'Bonker', blurb: 'Big swings up close. Super tough.',
       abilityName: 'Spin Attack', weapon: 'sword',
-      maxHp: 12, speed: 230,      // health and walking speed
-      attack: 'swing', damage: 3, reach: 95, arc: 2.2, cooldown: 0.38, // arc = how wide the swing is
-      abilityCooldown: 4, spinReach: 135, spinMultiplier: 1.5,
+      maxHp: 12, speed: 260,      // health and walking speed
+      attack: 'swing',
+      light: { damage: 2, reach: 85, arc: 1.3, cooldown: 0.16 },
+      heavy: { name: 'Power Swing', damage: 4, reach: 110, arc: 2.4, cooldown: 0.8 },
+      abilityCooldown: 4, spinReach: 140, spinMultiplier: 1.2,
     },
     zapper: {
       label: 'Zapper', blurb: 'Shoots zappy bolts from far away.',
       abilityName: 'Bolt Burst', weapon: 'blaster',
-      maxHp: 7, speed: 255,
-      attack: 'bolt', damage: 2, boltSpeed: 640, cooldown: 0.25,
+      maxHp: 7, speed: 280,
+      attack: 'bolt', boltSpeed: 700,
+      light: { damage: 1.5, cooldown: 0.16 },
+      heavy: { name: 'Mega Bolt', damage: 4, cooldown: 0.8 },
       abilityCooldown: 3.5, burstBolts: 14,
     },
     builder: {
       label: 'Builder', blurb: 'Drops spring traps that bonk mobs.',
       abilityName: 'Place Trap', weapon: 'hammer',
-      maxHp: 9, speed: 235,
-      attack: 'swing', damage: 2, reach: 85, arc: 2.0, cooldown: 0.4,
+      maxHp: 9, speed: 265,
+      attack: 'swing',
+      light: { damage: 1.5, reach: 80, arc: 1.2, cooldown: 0.18 },
+      heavy: { name: 'Hammer Slam', damage: 3, reach: 100, arc: 2.2, cooldown: 0.9 },
       abilityCooldown: 1.2, maxTraps: 6,
     },
     fixer: {
       label: 'Fixer', blurb: 'Repairs itself and pops a shield.',
       abilityName: 'Repair + Shield', weapon: 'wrench',
-      maxHp: 9, speed: 240,
-      attack: 'swing', damage: 2, reach: 85, arc: 2.0, cooldown: 0.38,
+      maxHp: 9, speed: 270,
+      attack: 'swing',
+      light: { damage: 1.5, reach: 80, arc: 1.2, cooldown: 0.18 },
+      heavy: { name: 'Wrench Whack', damage: 3, reach: 100, arc: 2.2, cooldown: 0.9 },
       abilityCooldown: 8, heal: 4, shieldSeconds: 3, regenPerSecond: 0.25,
     },
   },
@@ -86,6 +126,8 @@ export const CONFIG = {
   ],
   spawnEverySeconds: 0.45,        // A new mob appears this often during a wave
   maxMobsAtOnce: 18,              // Never more than this many mobs at once
+  spawnMinDistance: 450,          // Mobs appear at least this far from you...
+  spawnMaxDistance: 800,          // ...and at most this far
   firstBreakSeconds: 4,           // Countdown before wave 1
   breakSeconds: 25,               // Shop time between waves (press ENTER to skip)
   waveBonusCoins: 5,              // Bonus coins for clearing a wave (times the wave number)
@@ -134,14 +176,22 @@ export const CONFIG = {
     bumperForce: 650,             // How hard bumpers bounce you away
     oilMobSlow: 0.6,              // Mobs on oil move this fast (0.6 = 60% speed)
     layout: [                     // Where everything is (x = left-right, y = back-front)
-      { type: 'spikes', x: 230, y: 300, offset: 0 },
-      { type: 'spikes', x: 670, y: 300, offset: 1.1 },
-      { type: 'spikes', x: 450, y: 640, offset: 2.2 },
-      { type: 'bumper', x: 450, y: 220 },
-      { type: 'bumper', x: 170, y: 560 },
-      { type: 'bumper', x: 730, y: 560 },
-      { type: 'oil', x: 300, y: 470, r: 70 },
-      { type: 'oil', x: 640, y: 150, r: 60 },
+      { type: 'spikes', x: 700, y: 700, offset: 0 },
+      { type: 'spikes', x: 1700, y: 700, offset: 1.1 },
+      { type: 'spikes', x: 1200, y: 1320, offset: 2.2 },
+      { type: 'spikes', x: 520, y: 1380, offset: 0.6 },
+      { type: 'spikes', x: 1880, y: 1380, offset: 1.7 },
+      { type: 'spikes', x: 1200, y: 260, offset: 2.8 },
+      { type: 'bumper', x: 880, y: 1000 },
+      { type: 'bumper', x: 1520, y: 1000 },
+      { type: 'bumper', x: 400, y: 420 },
+      { type: 'bumper', x: 2000, y: 560 },
+      { type: 'bumper', x: 800, y: 1600 },
+      { type: 'bumper', x: 1600, y: 1560 },
+      { type: 'oil', x: 1200, y: 1550, r: 110 },
+      { type: 'oil', x: 600, y: 1060, r: 90 },
+      { type: 'oil', x: 1800, y: 1060, r: 90 },
+      { type: 'oil', x: 1650, y: 280, r: 80 },
     ],
   },
 
@@ -157,13 +207,14 @@ export const CONFIG = {
     fire: { label: 'Fire', color: '#ff7b00', burnSeconds: 3, burnDamagePerSecond: 1.5 },
     ice:  { label: 'Ice',  color: '#8ecae6', chillSeconds: 2.5, slow: 0.45 },
     zap:  { label: 'Zap',  color: '#ffee32', chainCount: 2, chainRange: 170, chainDamage: 0.6 },
+    elementalSwordChains: 4,      // The Elemental Sword zaps this many extra mobs per hit
     armorDamage: 2,               // Enchanted armor hits mobs that bonk you this hard
   },
 
   // ---- The shop (walk into the door between waves) ----
   shop: {
-    x: 40, y: 0, w: 140, h: 70,   // Where the shop building sits
-    doorRadius: 42,               // How close you must get to the door
+    x: 1100, y: 520, w: 200, h: 110, // Where the shop building sits
+    doorRadius: 50,               // How close you must get to the door
     items: [
       { label: 'Sharper Weapon', desc: '+1 damage', effect: 'damage', amount: 1, cost: 20, costUp: 15 },
       { label: 'Turbo Wheels', desc: '+12% speed', effect: 'speed', amount: 0.12, cost: 15, costUp: 10 },
@@ -172,7 +223,7 @@ export const CONFIG = {
       { label: 'Trap Pack', desc: '+3 spring traps (press Q)', effect: 'traps', amount: 3, cost: 15 },
       { label: 'Fire Weapon', desc: 'Hits set mobs on fire', effect: 'weaponEnchant', element: 'fire', cost: 35 },
       { label: 'Ice Weapon', desc: 'Hits freeze mobs slow', effect: 'weaponEnchant', element: 'ice', cost: 35 },
-      { label: 'Zap Weapon', desc: 'Hits zap nearby mobs too', effect: 'weaponEnchant', element: 'zap', cost: 35 },
+      { label: 'Elemental Sword', desc: '+1 damage, every hit zaps 4 mobs', effect: 'elementalSword', cost: 100 },
       { label: 'Fire Armor', desc: 'Mobs that bonk you get burned', effect: 'armorEnchant', element: 'fire', cost: 30 },
       { label: 'Ice Armor', desc: 'Mobs that bonk you get frozen', effect: 'armorEnchant', element: 'ice', cost: 30 },
       { label: 'Zap Armor', desc: 'Mobs that bonk you get zapped', effect: 'armorEnchant', element: 'zap', cost: 30 },
@@ -204,7 +255,7 @@ export const CONFIG = {
     title: 'ROBO KNIGHTS',
     subtitle: 'Bonk the hordes. Beat the dragon. Win the flaming sword!',
     start: 'Press ENTER to build your knight',
-    controls: 'WASD move  ·  Mouse aim + click attack  ·  SPACE ability  ·  Q trap  ·  P pause  ·  M mute',
+    controls: 'WASD move · Click attack · Right-click/E power attack · SPACE ability · Q trap · P pause · M mute',
     customizeTitle: 'BUILD YOUR ROBOT KNIGHT',
     customizeHint: '↑ ↓ choose  ·  ← → change  ·  type your name  ·  ENTER to battle!',
     paused: 'PAUSED',

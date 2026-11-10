@@ -12,7 +12,7 @@ import { heroAtDoor, shopDoor } from './entities/shop.js';
 import { updateWaves } from './waves.js';
 import { updateEffects } from './effects.js';
 import { openShop } from './shopMenu.js';
-import { dist } from './view.js';
+import { dist, followCamera } from './view.js';
 
 export function updateGame(dt) {
   state.time += dt;
@@ -29,6 +29,7 @@ export function updateGame(dt) {
   if (state.banner && (state.banner.timeLeft -= dt) <= 0) state.banner = null;
   state.shake = Math.max(0, state.shake - dt);
   if (state.hero.hp <= 0 && state.screen === 'playing') return endRound();
+  followCamera(state.hero, dt);
   checkShopDoor();
 }
 

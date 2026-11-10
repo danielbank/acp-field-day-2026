@@ -7,7 +7,8 @@ import { text, dimScreen } from './ui.js';
 import { drawKnight } from './entities/knightLook.js';
 import { drawDragon } from './entities/dragonLook.js';
 import { drawFlameSwordPickup } from './entities/pickups.js';
-import { drawArena } from './render.js';
+import { drawArena } from './arena3d.js';
+import { camera } from './view.js';
 
 const W = CONFIG.width;
 const T = CONFIG.text;
@@ -17,7 +18,9 @@ const C = CONFIG.colors;
 const titleDragon = { r: 70, t: 0, z: 0, mouthGlow: 0, x: 0, y: 0 };
 
 export function drawTitle(ctx, t) {
-  drawArena(ctx);
+  camera.x = CONFIG.arena.width / 2 + Math.sin(t * 0.15) * 500;   // slow fly-over of the courtyard
+  camera.y = CONFIG.arena.depth / 2;
+  drawArena(ctx, t);
   dimScreen(ctx, 0.35);
   text(ctx, T.title, W / 2, 110, 92, C.accent);
   text(ctx, T.subtitle, W / 2, 180, 26);

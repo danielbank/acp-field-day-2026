@@ -23,6 +23,7 @@ const ITEM_EFFECTS = {
   traps: (h, item) => { h.trapCharges += item.amount; },
   weaponEnchant: (h, item) => { h.weaponEnchant = item.element; },
   armorEnchant: (h, item) => { h.armorEnchant = item.element; },
+  elementalSword: (h) => { h.elementalSword = true; h.upgrades.damage += 1; },
 };
 
 export function openShop() {
@@ -47,7 +48,8 @@ function price(item) {
 
 function isOwned(item) {
   const h = state.hero;
-  return (item.effect === 'weaponEnchant' && h.weaponEnchant === item.element)
+  return (item.effect === 'elementalSword' && h.elementalSword)
+    || (item.effect === 'weaponEnchant' && h.weaponEnchant === item.element)
     || (item.effect === 'armorEnchant' && h.armorEnchant === item.element);
 }
 
@@ -84,6 +86,7 @@ export function handleShopAction(action) {
 
 function itemColor(item) {
   if (item.element) return CONFIG.enchants[item.element].color;
+  if (item.effect === 'elementalSword') return '#caf0f8';
   return { damage: '#ff4d6d', speed: '#4cc9f0', maxHp: '#80ffdb', repair: '#80ffdb', traps: '#ff9f1c' }[item.effect];
 }
 

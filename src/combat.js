@@ -12,14 +12,16 @@ import { dragonBonked } from './entities/dragon.js';
 
 const E = CONFIG.enchants;
 
-export function heroDamage(hero) {
-  const d = CONFIG.roles[hero.role].damage + hero.upgrades.damage;
+// kind: 'light' (click) or 'heavy' (right-click / E)
+export function heroDamage(hero, kind = 'light') {
+  const d = CONFIG.roles[hero.role][kind].damage + hero.upgrades.damage;
   return hero.flameSword ? d * CONFIG.flameSword.damageMultiplier : d;
 }
 
 export function heroEnchants(hero) {
   const list = hero.weaponEnchant ? [hero.weaponEnchant] : [];
   if (hero.flameSword && !list.includes('fire')) list.push('fire');
+  if (hero.elementalSword && !list.includes('zap')) list.push('zap');
   return list;
 }
 
@@ -49,7 +51,7 @@ function applyEnchant(mob, element, amount) {
     const others = state.mobs
       .filter((m) => m !== mob && canBeHit(m) && dist(m, mob) < E.zap.chainRange)
       .sort((a, b) => dist(a, mob) - dist(b, mob))
-      .slice(0, E.zap.chainCount);
+      .slice(0, state.hero?.elementalSword ? E.elementalSwordChains : E.zap.chainCount);
     for (const m of others) {
       addZap(mob, m);
       damageMob(m, amount * E.zap.chainDamage);   // no enchant here, so zaps don't zap forever
@@ -111,12 +113,12 @@ export function pushHero(angle, force) {
 }
 
 // Bonk every mob within `reach` that's inside the swing (arcHalf = half the swing width).
-export function meleeHit(hero, reach, arcHalf, damage, enchants) {
+export function meleeHit(hero, reach, arcHalf, damage, enchants, knockForce = 260) {
   for (const m of [...state.mobs]) {
     if (dist(hero, m) - m.r > reach) continue;
     const a = angleTo(hero, m);
     if (Math.abs(angleDiff(a, hero.aim)) > arcHalf) continue;
-    damageMob(m, damage, enchants, a);
+    damageMob(m, damage, enchants, a, knockForce);
   }
 }
 

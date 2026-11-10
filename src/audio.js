@@ -34,6 +34,7 @@ function tone(startHz, endHz, seconds, wave = 'square', delay = 0, loud = 1) {
 const SOUNDS = {
   start:    () => { tone(330, 660, 0.12); tone(660, 990, 0.12, 'square', 0.1); },
   swing:    () => { tone(700, 250, 0.08, 'triangle', 0, 0.6); },
+  heavySwing: () => { tone(420, 90, 0.22, 'sawtooth', 0, 0.7); },
   zap:      () => { tone(1400, 500, 0.07, 'square', 0, 0.4); },
   bonk:     () => { tone(260, 120, 0.07, 'square', 0, 0.6); },
   poof:     () => { tone(700, 120, 0.15, 'triangle'); },

@@ -6,6 +6,7 @@ import { CONFIG } from './config.js';
 export const input = {
   up: false, down: false, left: false, right: false,
   mouseX: CONFIG.width / 2, mouseY: CONFIG.height / 2, mouseDown: false,
+  heavyDown: false,     // right mouse button or E (power attack)
 };
 
 const actions = [];
@@ -27,6 +28,7 @@ export function menuDir(action, lettersToo = true) {
 export function setupInput(canvas) {
   window.addEventListener('keydown', (e) => {
     if (MOVE_KEYS[e.code]) input[MOVE_KEYS[e.code]] = true;
+    if (e.code === 'KeyE') input.heavyDown = true;
     if (!e.repeat) {
       if (ARROWS[e.code]) actions.push(ARROWS[e.code]);
       if (ACTION_KEYS[e.code]) actions.push(ACTION_KEYS[e.code]);
@@ -36,9 +38,10 @@ export function setupInput(canvas) {
   });
   window.addEventListener('keyup', (e) => {
     if (MOVE_KEYS[e.code]) input[MOVE_KEYS[e.code]] = false;
+    if (e.code === 'KeyE') input.heavyDown = false;
   });
   window.addEventListener('blur', () => {   // switched to another window: let go of everything and pause
-    input.up = input.down = input.left = input.right = input.mouseDown = false;
+    input.up = input.down = input.left = input.right = input.mouseDown = input.heavyDown = false;
     actions.push('blur');
   });
 
@@ -50,13 +53,17 @@ export function setupInput(canvas) {
   canvas.addEventListener('pointerdown', (e) => {
     canvas.setPointerCapture(e.pointerId);
     toGame(e);
+    if (e.button === 2) { input.heavyDown = true; return; }   // right-click = power attack
     input.mouseDown = true;
     actions.push('click');
   });
   canvas.addEventListener('pointermove', toGame);
-  const release = () => { input.mouseDown = false; };
+  const release = (e) => {
+    if (e.button === 2) input.heavyDown = false;
+    else input.mouseDown = false;
+  };
   canvas.addEventListener('pointerup', release);
-  canvas.addEventListener('pointercancel', release);
+  canvas.addEventListener('pointercancel', () => { input.mouseDown = input.heavyDown = false; });
   canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 }
 

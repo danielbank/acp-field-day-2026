@@ -10,6 +10,7 @@ import { playSound } from '../audio.js';
 import { fireMobShot } from './projectiles.js';
 import { dropMobTrap } from './traps.js';
 import { blockShop } from './shop.js';
+import { blockProps } from './props.js';
 import { updateDragon } from './dragon.js';
 
 export function createMob(kind, x, y, loop = 1, small = false) {
@@ -41,6 +42,7 @@ export function updateMob(m, dt) {
   if (m.kind === 'dragon') return;
   keepInArena(m);
   blockShop(m);
+  blockProps(m);
   if (m.z < 30 && dist(m, state.hero) < m.r + state.hero.r) hurtHero(m.damage, m);
 }
 

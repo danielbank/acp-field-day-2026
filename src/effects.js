@@ -3,7 +3,7 @@
 
 import { CONFIG } from './config.js';
 import { state } from './state.js';
-import { toScreen, floorEllipse, rand } from './view.js';
+import { toScreen, floorEllipse, floorWedge, rand } from './view.js';
 import { text } from './ui.js';
 
 function add(fx) {
@@ -69,17 +69,11 @@ export function drawFloorEffects(ctx) {
       ctx.strokeStyle = fx.color;
       ctx.globalAlpha = k;
       ctx.lineWidth = 6;
-      floorEllipse(ctx, fx.x, fx.y, fx.r * (1.15 - k * 0.5));
-      ctx.stroke();
+      if (floorEllipse(ctx, fx.x, fx.y, fx.r * (1.15 - k * 0.5))) ctx.stroke();
     } else if (fx.type === 'arc') {
-      const p = toScreen(fx.x, fx.y);
       ctx.fillStyle = fx.color;
-      ctx.globalAlpha = 0.35 * k;
-      ctx.beginPath();
-      ctx.moveTo(p.x, p.y);
-      ctx.ellipse(p.x, p.y, fx.r, fx.r * CONFIG.arena.tilt, 0, fx.angle - fx.width / 2, fx.angle + fx.width / 2);
-      ctx.closePath();
-      ctx.fill();
+      ctx.globalAlpha = 0.4 * k;
+      if (floorWedge(ctx, fx.x, fx.y, fx.r, fx.angle - fx.width / 2, fx.angle + fx.width / 2)) ctx.fill();
     }
   }
   ctx.globalAlpha = 1;
@@ -88,19 +82,21 @@ export function drawFloorEffects(ctx) {
 export function drawSkyEffects(ctx) {
   for (const fx of state.effects) {
     const k = fx.life / fx.maxLife;
+    if (fx.type === 'ring' || fx.type === 'arc') continue;
     const p = toScreen(fx.x, fx.y, fx.z ?? 0);
+    if (p.s <= 0) continue;
     ctx.globalAlpha = Math.min(1, k * 1.5);
-    if (fx.type === 'star') drawStar(ctx, p.x, p.y, fx.size, fx.color, fx.life * 10);
+    if (fx.type === 'star') drawStar(ctx, p.x, p.y, fx.size * p.s, fx.color, fx.life * 10);
     else if (fx.type === 'puff') {
       ctx.fillStyle = fx.color;
       ctx.globalAlpha = k * 0.6;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, fx.size * (1.6 - k), 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, fx.size * (1.6 - k) * p.s, 0, Math.PI * 2);
       ctx.fill();
     } else if (fx.type === 'ember') {
       ctx.fillStyle = fx.color;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, fx.size, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, fx.size * p.s, 0, Math.PI * 2);
       ctx.fill();
     } else if (fx.type === 'text') text(ctx, fx.str, p.x, p.y, 20, fx.color);
     else if (fx.type === 'zap') drawZap(ctx, fx);
@@ -123,6 +119,7 @@ export function drawStar(ctx, x, y, size, color, spin = 0) {
 function drawZap(ctx, fx) {
   const a = toScreen(fx.x, fx.y, 25);
   const b = toScreen(fx.x2, fx.y2, 25);
+  if (a.s <= 0 || b.s <= 0) return;
   ctx.strokeStyle = fx.color;
   ctx.lineWidth = 3;
   ctx.beginPath();

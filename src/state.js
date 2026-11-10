@@ -9,6 +9,7 @@ import { startNextWave } from './waves.js';
 import { handleShopAction } from './shopMenu.js';
 import { handleCustomizeAction, isTypingName, loadLook } from './customize.js';
 import { unlockAudio, playSound, toggleMute } from './audio.js';
+import { followCamera } from './view.js';
 
 const BEST_SCORE_KEY = 'robo-knights-best';
 
@@ -42,6 +43,7 @@ export function resetRound(carry = null) {
     shopArmed: true,     // the shop opens when you walk into the door (once per visit)
     isNewBest: false,
   });
+  followCamera(state.hero, 0, true);
 }
 
 export function showBanner(text, seconds = 1.8) {
@@ -83,7 +85,7 @@ function startGame() {
 function startNewGamePlus() {
   const h = state.hero;
   const carry = { upgrades: h.upgrades, bought: h.bought, weaponEnchant: h.weaponEnchant,
-    armorEnchant: h.armorEnchant, trapCharges: h.trapCharges, flameSword: true,
+    armorEnchant: h.armorEnchant, trapCharges: h.trapCharges, flameSword: true, elementalSword: h.elementalSword,
     coins: state.coins, score: state.score };
   state.loop += 1;
   resetRound(carry);

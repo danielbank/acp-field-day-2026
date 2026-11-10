@@ -11,8 +11,10 @@ const OUTLINE = 'rgba(10,4,20,0.5)';
 
 export function drawMob(ctx, m, t) {
   const p = toScreen(m.x, m.y, m.z);
+  if (p.s <= 0) return;
   ctx.save();
   ctx.translate(p.x, p.y);
+  ctx.scale(p.s * CONFIG.view.spriteScale, p.s * CONFIG.view.spriteScale);
   ctx.save();
   if (m.facing < 0) ctx.scale(-1, 1);
   LOOKS[m.kind](ctx, m, t);

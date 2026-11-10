@@ -63,18 +63,19 @@ function collect(p) {
 
 export function drawPickup(ctx, p, t) {
   const s = toScreen(p.x, p.y, p.z);
+  if (s.s <= 0) return;
   if (p.kind === 'coin') {
-    const w = Math.abs(Math.cos(p.t * 5)) * 8 + 1;
+    const w = (Math.abs(Math.cos(p.t * 5)) * 8 + 1) * s.s;
     ctx.fillStyle = '#ffd166';
     ctx.strokeStyle = '#b5838d';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.ellipse(s.x, s.y - 8, w, 8, 0, 0, Math.PI * 2);
+    ctx.ellipse(s.x, s.y - 8 * s.s, w, 8 * s.s, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
     return;
   }
-  drawFlameSwordPickup(ctx, s.x, s.y - 10 - Math.sin(t * 3) * 6, t);
+  drawFlameSwordPickup(ctx, s.x, s.y - (10 + Math.sin(t * 3) * 6) * s.s, t, s.s * 1.3);
 }
 
 // The prize! A flaming sword floating point-down, with a sparkly glow.

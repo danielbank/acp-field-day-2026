@@ -54,8 +54,11 @@ Don't go down a rabbit hole while the class waits. A working game beats a clever
 | `src/shopMenu.js` | Shop menu UI + buying (`ITEM_EFFECTS` map) |
 | `src/customize.js` | Build-your-knight screen (name, role, colors, helmet, base); saved in localStorage |
 | `src/screens.js` | Title, paused, game-over, victory screens |
-| `src/render.js` | 2.5D arena floor/walls, depth-sorted drawing, HUD, boss bar |
-| `src/view.js` | 2.5D camera (`toScreen`/`toWorld`), shadows, math helpers |
+| `src/render.js` | Draw order for a frame (depth-sorted), HUD, boss bar, minimap, shop arrow |
+| `src/view.js` | 3D perspective camera that follows you (`toScreen`/`toWorld`/`tracePoly`), shadows, math helpers |
+| `src/world3d.js` | Lit + foggy colors (`shade`), `drawBox()` for solid 3D blocks, `line3d()` |
+| `src/arena3d.js` | The 3D courtyard: stone floor tiles, grass, castle walls, battlements, torches |
+| `src/entities/props.js` | Pillars and crates (block movement and bolts; fade when in front of you) |
 | `src/effects.js` | Bonk stars, puffs, embers, floating text, swing arcs, rings, zaps |
 | `src/ui.js` | Text/panel/bar drawing helpers |
 | `src/twists.js` | The three optional `TWISTS` (each guarded by its boolean) |
@@ -81,7 +84,9 @@ Patterns to follow:
 - New on-screen text → put the string in `CONFIG.text`.
 - New per-round value → add it to `resetRound()` in `state.js` so restarts work.
 - Screens are `'title' | 'customize' | 'playing' | 'shop' | 'paused' | 'gameover' | 'victory'`; transitions live in `handleAction()` (plus `openShop`/`winRound`/`endRound`).
-- Positions are arena coordinates: `x` left-right, `y` back-front (depth), `z` height. Convert with `toScreen()`.
+- 2.5D = 3D world, flat 2D characters. Positions are `x` left-right, `y` back-front, `z` height. `toScreen()` returns `{x, y, s}`;
+  draw characters with `ctx.scale(s)`, floor shapes with `floorEllipse`/`tracePoly`, solid things with `drawBox`.
+- New pillar/crate → add to `CONFIG.props`.
 
 Style: plain ES modules, no frameworks, no TypeScript, short readable functions,
 a 1–2 line header comment on every file. Keep each file small and single-purpose.

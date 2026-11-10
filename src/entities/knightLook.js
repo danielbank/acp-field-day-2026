@@ -6,26 +6,27 @@ import { CONFIG } from '../config.js';
 const DARK = '#2b2d42';
 const OUTLINE = 'rgba(10,4,20,0.45)';
 
-// pose: { facing, aim (screen angle), swing (-1 or 0..1), spin (0..1), walk, flame, t, role }
+// pose: { facing, aim (screen angle), swing (-1 or 0..1), swingSpan, spin (0..1), walk, flame, elemental, t, role }
 export function drawKnight(ctx, look, pose = {}) {
   const C = CONFIG.customize;
   const body = C.bodyColors[look.body];
   const armor = C.armorColors[look.armor];
   const eyes = C.eyeColors[look.eyes];
-  const { facing = 1, aim = 0, swing = -1, spin = 0, walk = 0, flame = false, t = 0, role = look.role } = pose;
+  const { facing = 1, aim = 0, swing = -1, swingSpan = 2.4, spin = 0, walk = 0, flame = false, elemental = false,
+    t = 0, role = look.role } = pose;
 
   let weaponAngle = aim;
-  if (swing >= 0) weaponAngle = aim - 1.2 + 2.4 * swing;
+  if (swing >= 0) weaponAngle = aim - swingSpan / 2 + swingSpan * swing;
   if (spin > 0) weaponAngle = aim + spin * Math.PI * 2;
   const weaponBehind = Math.sin(weaponAngle) < -0.35;   // pointing away from us, so it's behind the body
 
   drawBase(ctx, C.bases[look.base], body, armor, walk);
   ctx.save();
   ctx.translate(0, Math.sin(walk * 2) * 1.5);
-  if (weaponBehind) drawWeapon(ctx, role, weaponAngle, flame, t);
+  if (weaponBehind) drawWeapon(ctx, role, weaponAngle, flame, elemental, t);
   drawTorso(ctx, body, armor, eyes);
   drawHead(ctx, armor, eyes, facing, C.helmets[look.helmet], t);
-  if (!weaponBehind) drawWeapon(ctx, role, weaponAngle, flame, t);
+  if (!weaponBehind) drawWeapon(ctx, role, weaponAngle, flame, elemental, t);
   ctx.restore();
 }
 
@@ -123,13 +124,15 @@ function drawHead(ctx, armor, eyes, facing, helmet, t) {
 }
 
 // ---- Weapons (drawn pointing along +x, then rotated to the aim) ----
-function drawWeapon(ctx, role, angle, flame, t) {
+function drawWeapon(ctx, role, angle, flame, elemental, t) {
   const weapon = CONFIG.roles[role].weapon;
   ctx.save();
   ctx.translate(Math.cos(angle) * 14, -34 + Math.sin(angle) * 6);
   ctx.rotate(angle);
-  if (weapon === 'blaster') drawBlaster(ctx, flame, t);
-  else if (flame || weapon === 'sword') drawSword(ctx, flame, t);
+  if (weapon === 'blaster') drawBlaster(ctx, flame, t, elemental);
+  else if (flame) drawSword(ctx, true, t);
+  else if (elemental) drawElementalSword(ctx, t);
+  else if (weapon === 'sword') drawSword(ctx, false, t);
   else if (weapon === 'hammer') drawHammer(ctx);
   else drawWrench(ctx);
   ctx.restore();
@@ -153,6 +156,25 @@ function drawSword(ctx, flame, t) {
   }
 }
 
+// The Elemental Sword: a glowing blue blade with lightning crackling along it.
+function drawElementalSword(ctx, t) {
+  shape(ctx, '#3c096c', () => ctx.rect(-6, -3, 12, 6));
+  shape(ctx, '#4cc9f0', () => ctx.rect(5, -10, 5, 20));
+  ctx.fillStyle = 'rgba(76,201,240,0.35)';
+  ctx.beginPath();
+  ctx.ellipse(32, 0, 28, 10, 0, 0, Math.PI * 2);
+  ctx.fill();
+  shape(ctx, '#caf0f8', () => {
+    ctx.moveTo(10, -4); ctx.lineTo(48, -4); ctx.lineTo(58, 0); ctx.lineTo(48, 4); ctx.lineTo(10, 4); ctx.closePath();
+  });
+  ctx.strokeStyle = '#ffee32';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(10, 0);
+  for (let x = 16; x <= 56; x += 6) ctx.lineTo(x, Math.sin(t * 40 + x) * 6);
+  ctx.stroke();
+}
+
 function drawHammer(ctx) {
   shape(ctx, '#8d5a2b', () => ctx.rect(-4, -3, 36, 6));
   shape(ctx, '#adb5bd', () => ctx.roundRect(28, -11, 14, 22, 3));
@@ -165,10 +187,10 @@ function drawWrench(ctx) {
   ctx.fillRect(36, -3, 8, 6);
 }
 
-function drawBlaster(ctx, flame, t) {
+function drawBlaster(ctx, flame, t, elemental) {
   shape(ctx, '#3c096c', () => ctx.roundRect(-4, -6, 26, 12, 4));
   shape(ctx, '#adb5bd', () => ctx.rect(20, -3, 10, 6));
-  ctx.fillStyle = flame ? '#ff9f1c' : '#4cc9f0';
+  ctx.fillStyle = flame ? '#ff9f1c' : elemental ? '#ffee32' : '#4cc9f0';
   ctx.beginPath();
   ctx.arc(32, 0, 4 + Math.sin(t * 15) * 1.2, 0, Math.PI * 2);
   ctx.fill();
