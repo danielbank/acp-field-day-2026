@@ -1,4 +1,4 @@
-# CLAUDE.md — Robo Dodge (live classroom vibe coding)
+# CLAUDE.md — Sky Board Showdown (live classroom vibe coding)
 
 This is a **live classroom demo**. A presenter is projecting this session to middle schoolers
 (ages 11–14) who shout out ideas. The presenter types them to you one at a time. Kids are
@@ -44,21 +44,22 @@ Don't go down a rabbit hole while the class waits. A working game beats a clever
 
 | File | Job |
 | --- | --- |
-| `src/config.js` | Every tweakable knob: hero, fallers, speeds, lives, colors, text, sound, `TWISTS` |
+| `src/config.js` | Every tweakable knob: cockpit/flapping, lasers, dinos, zap zones, boss, lives, colors, text, sound, `TWISTS` |
 | `src/main.js` | Canvas setup + game loop (delta time, capped) |
 | `src/state.js` | Game state, new-round reset, best score, the screen state machine (`handleAction`) |
-| `src/game.js` | Rules of a round: score, levels, spawning, moving, bonks |
-| `src/twists.js` | The three optional `TWISTS` (each guarded by its boolean) |
-| `src/entities/hero.js` | Hero movement + `drawRobot()` |
-| `src/entities/faller.js` | Falling things + their looks (`LOOKS` map: `asteroid`, `ball`) |
-| `src/entities/boss.js` | Boss UFO (bossAppears twist) |
+| `src/game.js` | Rules of a round: score, levels, spawning dinos/zap zones/boss, bonks |
+| `src/lasers.js` | Firing lasers (click or F), hitting dinos and the boss, star puffs |
+| `src/twists.js` | The optional `TWISTS` (each guarded by its boolean) |
+| `src/entities/hero.js` | Flying skateboard: flapping, aiming, ground + cockpit + crosshair drawing, `drawRobot()` (HUD lives) |
+| `src/entities/dino.js` | The 5 dino types (`MOVES` map + `CONFIG.dinoTypes`) and `drawDino()` |
+| `src/entities/zapZone.js` | Laser walls at random heights to flap over or under |
+| `src/entities/boss.js` | Raccoon Mastermind boss ship + health bar |
 | `src/input.js` | Keyboard + touch → `input` flags and actions |
 | `src/audio.js` | Synthesized sounds (`SOUNDS` map) and mute |
 | `src/render.js` | Background, HUD, title / paused / game-over screens |
-| `src/collision.js` | Circle-vs-hero hit test |
 
 Patterns to follow:
-- New falling look → write `drawSomething(ctx, f)` in `faller.js`, add to `LOOKS`, set `faller.look` in config.
+- New dino type → add it to `CONFIG.dinoTypes` and give it a move in `MOVES` in `dino.js`.
 - New sound → add to `SOUNDS` in `audio.js`, call `playSound('name')`.
 - New twist → add a boolean to `TWISTS` (default `false`), settings to `TWIST_SETTINGS`, logic in `twists.js`.
 - New on-screen text → put the string in `CONFIG.text`.
