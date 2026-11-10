@@ -110,6 +110,7 @@ function useMissiles(dt, stage) {
     }
   }
   const candidates = [...(stage.missileTargets ? stage.missileTargets() : []), ...state.fallers];
+  const fallerSet = new Set(state.fallers); // quick "is this junk?" check for each missile hit
   for (const m of state.missiles) {
     let target = null;
     let best = Infinity;
@@ -121,7 +122,8 @@ function useMissiles(dt, stage) {
     if (target && Math.hypot(target.x - m.x, target.y - m.y) < m.r + target.r) {
       m.dead = true;
       playSound('megaBonk');
-      if (state.fallers.includes(target)) {
+      if (fallerSet.has(target)) {
+        fallerSet.delete(target);
         state.fallers = state.fallers.filter((f) => f !== target);
         candidates.splice(candidates.indexOf(target), 1);
         gainXp(1, target.x, target.y);
