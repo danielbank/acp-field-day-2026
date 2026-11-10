@@ -1,4 +1,4 @@
-# CLAUDE.md — Robo Dodge (live classroom vibe coding)
+# CLAUDE.md — Robo Racer (live classroom vibe coding)
 
 This is a **live classroom demo**. A presenter is projecting this session to middle schoolers
 (ages 11–14) who shout out ideas. The presenter types them to you one at a time. Kids are
@@ -44,23 +44,29 @@ Don't go down a rabbit hole while the class waits. A working game beats a clever
 
 | File | Job |
 | --- | --- |
-| `src/config.js` | Every tweakable knob: hero, fallers, speeds, lives, colors, text, sound, `TWISTS` |
-| `src/main.js` | Canvas setup + game loop (delta time, capped) |
-| `src/state.js` | Game state, new-round reset, best score, the screen state machine (`handleAction`) |
-| `src/game.js` | Rules of a round: score, levels, spawning, moving, bonks |
-| `src/twists.js` | The three optional `TWISTS` (each guarded by its boolean) |
-| `src/entities/hero.js` | Hero movement + `drawRobot()` |
-| `src/entities/faller.js` | Falling things + their looks (`LOOKS` map: `asteroid`, `ball`) |
-| `src/entities/boss.js` | Boss UFO (bossAppears twist) |
+| `src/config.js` | Every tweakable knob: road, car, speeds, lives, time, things, powerups, aliens, colors, text, music, `TWISTS` |
+| `src/main.js` | Canvas setup + game loop (delta time, capped); routes driving actions to `gameAction()` |
+| `src/state.js` | Game state, new-round reset (`mode`: `'race'` or `'sandbox'`), best score, the screen state machine (`handleAction`) |
+| `src/game.js` | Rules of a round: driving, clock, checkpoints, smash/bump/collect, bonks, alien waves; `gameAction()` for jump/zap/turbo/spawn keys |
+| `src/road.js` | Endless road shape (`curveAt`, `hillAt`), camera, fake-3D road drawing, `projectOnRoad()` |
+| `src/spawner.js` | What appears on the road ahead (`MAKERS`), Free Play spawn keys |
+| `src/powerups.js` | Star (2X), turbo, spring (mega jump), magnet; `addPoints()` |
+| `src/effects.js` | Confetti `burst()` and floating `popup()` text |
+| `src/music.js` | Background music sequencer (notes come from `CONFIG.music`) |
+| `src/twists.js` | The three optional `TWISTS` (each a small helper guarded by its boolean) |
+| `src/entities/car.js` | Car driving/jumping/turbo, `drawCarShape()`, `drawHood()` |
+| `src/entities/things.js` | Road things and their looks (`LOOKS` map), `thingSize()` |
+| `src/entities/aliens.js` | Alien blob waves and goo bubbles |
 | `src/input.js` | Keyboard + touch → `input` flags and actions |
 | `src/audio.js` | Synthesized sounds (`SOUNDS` map) and mute |
-| `src/render.js` | Background, HUD, title / paused / game-over screens |
-| `src/collision.js` | Circle-vs-hero hit test |
+| `src/render.js` | Space background, world scene, HUD, title / paused / game-over screens |
 
 Patterns to follow:
-- New falling look → write `drawSomething(ctx, f)` in `faller.js`, add to `LOOKS`, set `faller.look` in config.
+- New road thing → add a size in `CONFIG.things`, a case in `thingSize()`, a draw function in `LOOKS` (things.js),
+  a maker in `MAKERS` + a chance in `CONFIG.spawn.chances` (spawner.js), and what touching it does in `checkHits()` (game.js).
 - New sound → add to `SOUNDS` in `audio.js`, call `playSound('name')`.
-- New twist → add a boolean to `TWISTS` (default `false`), settings to `TWIST_SETTINGS`, logic in `twists.js`.
+- New powerup → color in `CONFIG.powerups`, name in `POWER_KINDS` + effect in `applyPowerup()`, icon in `POWER_ICONS`.
+- New twist → add a boolean to `TWISTS` (default `false`), settings to `TWIST_SETTINGS`, a helper in `twists.js`.
 - New on-screen text → put the string in `CONFIG.text`.
 - New per-round value → add it to `resetRound()` in `state.js` so restarts work.
 - Screens are `'title' | 'playing' | 'paused' | 'gameover'`; transitions live only in `handleAction()`.
@@ -72,5 +78,5 @@ a 1–2 line header comment on every file. Keep each file small and single-purpo
 
 - `npm run check` — both builds must pass. Do this before every commit.
 - The presenter usually has `npm run dev` open; Vite reloads the page automatically on save.
-- In dev, `window.game` is the live game state (e.g. `game.lives = 99` in the browser console)
-  — handy for showing a change quickly without having to survive a minute.
+- In dev, `window.game` is the live game state (e.g. `game.lives = 99`, `game.timeLeft = 999`,
+  `game.car.z = game.nextCheckpointZ - 20000` to jump near a checkpoint) — handy for showing a change quickly.

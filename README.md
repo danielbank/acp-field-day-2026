@@ -1,6 +1,6 @@
-# Robo Dodge 🤖☄️
+# Robo Racer 🏎️🚀
 
-A tiny dodge-the-falling-things game for live "vibe coding" with middle schoolers.
+A fake-3D space-highway racer (jump, smash, zap alien blobs) — started life as Robo Dodge, a tiny dodge game for live "vibe coding" with middle schoolers.
 The class shouts ideas; you prompt Claude; the game changes live.
 
 Plain JavaScript + `<canvas>` + Vite. No runtime dependencies, no external assets, works fully offline.
@@ -15,7 +15,7 @@ npm run dev      # open the printed URL
 
 ## Pre-flight checklist (morning of)
 
-- [ ] `npm run dev` starts and the game shows **ROBO DODGE** in the browser
+- [ ] `npm run dev` starts and the game shows **ROBO RACER** in the browser
 - [ ] Press Space, play a round, die, press Space again
 - [ ] **Sound works** (start blip, bonk, game-over tune). Check projector/HDMI audio. `M` toggles mute.
 - [ ] `npm run build:offline` creates `dist-offline/game.html`; double-click it to make sure it opens
@@ -37,7 +37,8 @@ commits it with a plain-English message, and tells the class how to see it (rule
 - See what the class built: `git log --oneline`.
 - `main` stays as the clean starter for the next class.
 
-Controls: ← → or A/D to move · drag on touchscreens · Space to start · P pause · M mute.
+Controls: ← → / A D steer · ↑ / W gas · ↓ / S brake · Space jump (hold to zap alien blobs) · Shift turbo ·
+F Free Play · 1–5 spawn things in Free Play · Esc menu · P pause · M mute. Touch: hold to drive, slide to steer, tap to jump.
 The game auto-pauses when the browser window loses focus (e.g. when you click into the terminal).
 
 ## Offline fallback
