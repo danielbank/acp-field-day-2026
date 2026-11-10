@@ -67,6 +67,7 @@ export function endRound() {
 export function winRound() {
   state.screen = 'victory';
   state.endedAt = performance.now();
+  state.banner = null;
   saveBest();
   playSound('victory');
 }

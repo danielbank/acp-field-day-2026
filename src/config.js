@@ -11,10 +11,10 @@ export const CONFIG = {
   // ---- The arena (2.5D: the floor is tilted away from you) ----
   arena: {
     width: 900,                   // Arena size left-to-right
-    depth: 760,                   // Arena size front-to-back
+    depth: 720,                   // Arena size front-to-back
     tilt: 0.6,                    // How squished the floor looks (1 = looking straight down)
     left: 30,                     // Where the arena starts on screen (pixels from the left)
-    top: 150,                     // Where the back edge of the floor is on screen
+    top: 175,                     // Where the back edge of the floor is on screen
     tileSize: 76,                 // Size of the floor tiles
     floorColor: '#3c2a63',        // Floor tile color
     floorColor2: '#33234f',       // Other floor tile color (checkerboard)

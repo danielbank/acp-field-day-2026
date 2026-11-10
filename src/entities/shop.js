@@ -6,7 +6,7 @@ import { toScreen, dist } from '../view.js';
 import { text } from '../ui.js';
 
 const S = CONFIG.shop;
-const WALL_HEIGHT = 70;
+const WALL_HEIGHT = 56;
 
 export const shopDoor = { x: S.x + S.w / 2, y: S.y + S.h + 14 };
 export const shopDepth = S.y + S.h;   // for depth sorting
@@ -40,7 +40,7 @@ export function drawShopBuilding(ctx, isOpen, t) {
   ctx.fillRect(fl.x, top, w, WALL_HEIGHT);
   ctx.strokeRect(fl.x, top, w, WALL_HEIGHT);
   // striped awning roof
-  const roofTop = top - depthPx - 26;
+  const roofTop = top - depthPx - 20;
   for (let i = 0; i < 7; i++) {
     ctx.fillStyle = i % 2 ? '#ffffff' : '#e63946';
     ctx.beginPath();
@@ -65,12 +65,12 @@ export function drawShopBuilding(ctx, isOpen, t) {
   }
   // window with a coin in it
   ctx.fillStyle = '#90e0ef';
-  ctx.fillRect(fl.x + 12, top + 16, 28, 22);
-  ctx.strokeRect(fl.x + 12, top + 16, 28, 22);
+  ctx.fillRect(fl.x + 12, top + 14, 28, 22);
+  ctx.strokeRect(fl.x + 12, top + 14, 28, 22);
   ctx.fillStyle = '#ffd166';
   ctx.beginPath();
-  ctx.arc(fl.x + 26, top + 27, 7, 0, Math.PI * 2);
+  ctx.arc(fl.x + 26, top + 25, 7, 0, Math.PI * 2);
   ctx.fill();
-  text(ctx, 'SHOP', fl.x + w / 2, roofTop - 14, 22, CONFIG.colors.gold);
-  text(ctx, isOpen ? 'OPEN' : 'CLOSED', fl.x + w - 30, top + 26, 12, isOpen ? CONFIG.colors.good : CONFIG.colors.bad);
+  text(ctx, 'SHOP', fl.x + w / 2, (roofTop + top) / 2, 24, CONFIG.colors.gold);
+  text(ctx, isOpen ? 'OPEN' : 'CLOSED', fl.x + w - 30, top + 22, 12, isOpen ? CONFIG.colors.good : CONFIG.colors.bad);
 }

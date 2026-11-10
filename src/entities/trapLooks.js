@@ -9,11 +9,17 @@ const TILT = CONFIG.arena.tilt;
 
 export function drawFloorHazard(ctx, hz) {
   if (hz.type === 'oil') {
-    ctx.fillStyle = 'rgba(20,10,30,0.75)';
+    ctx.fillStyle = '#151020';                         // shiny black oil with a rainbow sheen
     floorEllipse(ctx, hz.x, hz.y, hz.r);
     ctx.fill();
-    ctx.fillStyle = 'rgba(160,120,255,0.25)';
-    floorEllipse(ctx, hz.x - hz.r * 0.3, hz.y - hz.r * 0.2, hz.r * 0.35);
+    ctx.lineWidth = 4;
+    ['rgba(255,77,109,0.35)', 'rgba(255,209,102,0.3)', 'rgba(76,201,240,0.35)'].forEach((color, i) => {
+      ctx.strokeStyle = color;
+      floorEllipse(ctx, hz.x + hz.r * 0.15, hz.y + hz.r * 0.1, hz.r * (0.45 - i * 0.1), Math.PI * 1.1, Math.PI * 1.7);
+      ctx.stroke();
+    });
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    floorEllipse(ctx, hz.x - hz.r * 0.45, hz.y - hz.r * 0.3, 6);
     ctx.fill();
   } else if (hz.type === 'spikes') {
     drawSpikePad(ctx, hz);

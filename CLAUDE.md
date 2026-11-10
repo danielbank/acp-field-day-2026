@@ -1,4 +1,4 @@
-# CLAUDE.md — Robo Dodge (live classroom vibe coding)
+# CLAUDE.md — Robo Knights (live classroom vibe coding)
 
 This is a **live classroom demo**. A presenter is projecting this session to middle schoolers
 (ages 11–14) who shout out ideas. The presenter types them to you one at a time. Kids are
@@ -44,26 +44,44 @@ Don't go down a rabbit hole while the class waits. A working game beats a clever
 
 | File | Job |
 | --- | --- |
-| `src/config.js` | Every tweakable knob: hero, fallers, speeds, lives, colors, text, sound, `TWISTS` |
-| `src/main.js` | Canvas setup + game loop (delta time, capped) |
-| `src/state.js` | Game state, new-round reset, best score, the screen state machine (`handleAction`) |
-| `src/game.js` | Rules of a round: score, levels, spawning, moving, bonks |
+| `src/config.js` | Every tweakable knob: arena, roles, mobs, waves, dragon, traps, enchants, shop items, customization, colors, text, sound, `TWISTS` |
+| `src/main.js` | Canvas setup + game loop (delta time, capped) + which screen to draw |
+| `src/state.js` | Game state, `resetRound()`, best score, New Game+, the screen state machine (`handleAction`) |
+| `src/game.js` | One frame of a round: update order for everything, shop door check, knocked-out check |
+| `src/waves.js` | Wave spawning, wave cleared → shop break, dragon after the last wave |
+| `src/combat.js` | Damage to mobs/you, enchant effects (fire/ice/zap), melee hits, blasts, mob poof + coins |
+| `src/roles.js` | Each role's click attack and SPACE ability (`ABILITIES` map) |
+| `src/shopMenu.js` | Shop menu UI + buying (`ITEM_EFFECTS` map) |
+| `src/customize.js` | Build-your-knight screen (name, role, colors, helmet, base); saved in localStorage |
+| `src/screens.js` | Title, paused, game-over, victory screens |
+| `src/render.js` | 2.5D arena floor/walls, depth-sorted drawing, HUD, boss bar |
+| `src/view.js` | 2.5D camera (`toScreen`/`toWorld`), shadows, math helpers |
+| `src/effects.js` | Bonk stars, puffs, embers, floating text, swing arcs, rings, zaps |
+| `src/ui.js` | Text/panel/bar drawing helpers |
 | `src/twists.js` | The three optional `TWISTS` (each guarded by its boolean) |
-| `src/entities/hero.js` | Hero movement + `drawRobot()` |
-| `src/entities/faller.js` | Falling things + their looks (`LOOKS` map: `asteroid`, `ball`) |
-| `src/entities/boss.js` | Boss UFO (bossAppears twist) |
-| `src/input.js` | Keyboard + touch → `input` flags and actions |
+| `src/input.js` | Keyboard + mouse → `input` flags and actions |
 | `src/audio.js` | Synthesized sounds (`SOUNDS` map) and mute |
-| `src/render.js` | Background, HUD, title / paused / game-over screens |
-| `src/collision.js` | Circle-vs-hero hit test |
+| `src/entities/hero.js` | Knight movement, aiming, timers, `drawHero()` |
+| `src/entities/knightLook.js` | `drawKnight()` — body, helmets, bases, weapons (incl. flaming sword) |
+| `src/entities/mobs.js` | Mob stats + `BEHAVIOR` map (junkbot, goo, babyDragon, beetle, dragon) |
+| `src/entities/mobLooks.js` | Mob drawings (`LOOKS` map) + burn/ice/flash overlays |
+| `src/entities/dragon.js` / `dragonLook.js` | Dragon boss attack phases / dragon drawing + warning circles |
+| `src/entities/projectiles.js` | Bolts, sparks, dragon fire |
+| `src/entities/traps.js` / `trapLooks.js` | Hazards (spikes, bumpers, oil), spring traps, mob tacks/goo / their drawings |
+| `src/entities/pickups.js` | Coins + the flaming sword prize |
+| `src/entities/shop.js` | Shop building in the arena (door, blocking, drawing) |
 
 Patterns to follow:
-- New falling look → write `drawSomething(ctx, f)` in `faller.js`, add to `LOOKS`, set `faller.look` in config.
+- New mob → stats in `CONFIG.mobs`, behavior in `BEHAVIOR` (`mobs.js`), drawing in `LOOKS` (`mobLooks.js`), add it to `CONFIG.waves`.
+- New shop item → add to `CONFIG.shop.items`; new kind of effect → add to `ITEM_EFFECTS` in `shopMenu.js`.
+- New role → add to `CONFIG.roles` + an entry in `ABILITIES` (`roles.js`).
+- New helmet/base look → add the name in `CONFIG.customize` and draw it in `knightLook.js`.
 - New sound → add to `SOUNDS` in `audio.js`, call `playSound('name')`.
 - New twist → add a boolean to `TWISTS` (default `false`), settings to `TWIST_SETTINGS`, logic in `twists.js`.
 - New on-screen text → put the string in `CONFIG.text`.
 - New per-round value → add it to `resetRound()` in `state.js` so restarts work.
-- Screens are `'title' | 'playing' | 'paused' | 'gameover'`; transitions live only in `handleAction()`.
+- Screens are `'title' | 'customize' | 'playing' | 'shop' | 'paused' | 'gameover' | 'victory'`; transitions live in `handleAction()` (plus `openShop`/`winRound`/`endRound`).
+- Positions are arena coordinates: `x` left-right, `y` back-front (depth), `z` height. Convert with `toScreen()`.
 
 Style: plain ES modules, no frameworks, no TypeScript, short readable functions,
 a 1–2 line header comment on every file. Keep each file small and single-purpose.
@@ -72,5 +90,5 @@ a 1–2 line header comment on every file. Keep each file small and single-purpo
 
 - `npm run check` — both builds must pass. Do this before every commit.
 - The presenter usually has `npm run dev` open; Vite reloads the page automatically on save.
-- In dev, `window.game` is the live game state (e.g. `game.lives = 99` in the browser console)
-  — handy for showing a change quickly without having to survive a minute.
+- In dev, `window.game` is the live game state (e.g. `game.hero.hp = 99`, `game.coins = 500`,
+  `game.wave = 5; game.breakTimer = 0` to jump to the dragon) — handy for showing a change quickly.

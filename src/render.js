@@ -105,7 +105,7 @@ export function drawHUD(ctx) {
 
   drawWaveMessage(ctx);
   drawBossBar(ctx);
-  if (isMuted()) text(ctx, 'MUTED (M)', CONFIG.width - 20, CONFIG.height - 12, 14, C.silver, 'right');
+  if (isMuted()) text(ctx, 'MUTED (M)', CONFIG.width - 20, 108, 14, C.silver, 'right');
   if (state.banner) text(ctx, state.banner.text, CONFIG.width / 2, CONFIG.height / 2 - 40, 52, C.warning);
 }
 
@@ -115,7 +115,7 @@ function drawWaveMessage(ctx) {
   const next = state.wave >= CONFIG.waves.length ? 'THE DRAGON' : `wave ${state.wave + 1}`;
   const msg = state.wave === 0 ? `Get ready! Wave 1 in ${secs}…`
     : `Shop is OPEN — walk into its door!  ·  ${next} in ${secs}s (ENTER = go now)`;
-  text(ctx, msg, CONFIG.width / 2, 118, 18, CONFIG.colors.gold);
+  text(ctx, msg, CONFIG.width / 2, CONFIG.height - 16, 18, CONFIG.colors.gold);
 }
 
 function drawBossBar(ctx) {
@@ -123,6 +123,6 @@ function drawBossBar(ctx) {
   if (!d) return;
   const w = 520;
   const x = (CONFIG.width - w) / 2;
-  bar(ctx, x, CONFIG.height - 30, w, 18, d.hp / d.maxHp, CONFIG.dragon.wingColor);
-  text(ctx, CONFIG.dragon.name, CONFIG.width / 2, CONFIG.height - 21, 14);
+  bar(ctx, x, CONFIG.height - 26, w, 18, d.hp / d.maxHp, CONFIG.dragon.wingColor);
+  text(ctx, CONFIG.dragon.name, CONFIG.width / 2, CONFIG.height - 17, 14);
 }
