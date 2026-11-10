@@ -54,7 +54,7 @@ export const CONFIG = {
   // ---- Coins (coins = XP!) ----
   coins: {
     spawnEverySeconds: 0.6,       // A new coin appears this often during the race
-    size: 16,                     // Coin size (radius)
+    size: 22,                     // Coin size (radius)
     speed: 230,                   // How fast coins fall
     color: '#ffd166',             // Coin gold
     shineColor: '#fff3b0',        // Coin shine
@@ -94,13 +94,15 @@ export const CONFIG = {
   race: {
     seconds: 20,                  // How long the drive to the destination takes
     destination: 'TATERTOWN',     // Destination name (written in alien letters!)
+    signWords: ['TATERTOWN', 'SPUD', 'TOTS AHEAD', 'FRY ZONE'], // Roadside signs (in alien letters)
+    signEverySeconds: 2.5,        // A roadside sign zooms past this often
   },
   targets: {
     toHit: 8,                     // Targets to hit on lap 1
     extraPerLap: 2,               // Extra targets each lap
     maxSeconds: 30,               // Stage ends after this long no matter what
     onScreen: 3,                  // How many targets float around at once
-    size: 30,                     // Target size (radius)
+    size: 45,                     // Target size (radius)
     speed: 140,                   // How fast targets slide side to side
     xp: 2,                        // XP per target
     junkEverySeconds: 2.2,        // A little junk still falls during target practice
@@ -125,10 +127,70 @@ export const CONFIG = {
     bonkXp: 5,                    // XP per mega-tot bonk
     defeatXp: 15,                 // XP for beating him
     lyrics: ['SPUD LIFE', 'MASH IT UP', 'TOT TOT TOT', 'FRY GUY', 'YAM JAM'], // Rap lines (shown in alien letters)
+    missileCharge: 20,            // A potato missile hitting him adds this much mega-tot charge
+    // -- the big laser --
+    laserSeconds: 30,             // Beat him within this many seconds or he fires his BIG LASER
+    laserWarnSeconds: 2,          // Warning time to get out of the way
+    laserFireSeconds: 1.6,        // How long the laser blasts
+    laserWidth: 120,              // How wide the laser lane is
+    laserXpLoss: 8,               // XP lost if the laser bonks you
+    laserColor: '#ff3b6b',        // Laser color
+    // -- tater tot helpers --
+    minionEverySeconds: 4,        // A new tater-tot helper shows up this often
+    maxMinions: 4,                // Never more helpers than this
+    minionSize: 36,               // Helper size
+    minionShootSeconds: 2.2,      // Each helper shoots this often
+    minionShotSpeed: 290,         // How fast helper shots fly
+    mergeEverySeconds: 7,         // Two helpers combine into a BIG POTATO this often
+    bigPotatoSize: 66,            // Big potato size
+    bigPotatoHp: 4,               // Tots needed to pop a big potato
+    bigPotatoMissileSeconds: 3,   // Big potatoes fire heat-seeking potato missiles this often
+    potatoMissileSpeed: 230,      // How fast their missiles fly
+    potatoMissileHoming: 150,     // How hard their missiles chase you (sideways speed)
+    // -- boss music --
+    musicOn: true,                // Play the boss beat? true or false
+    musicVolume: 0.12,            // How loud the boss beat is
+    musicTempo: 118,              // Beats per minute
   },
   crowd: {
     count: 16,                    // How many potato fans cheer at the boss fight
   },
+
+  // ---- 3D first-person camera ----
+  view: {
+    horizon: 250,                 // Screen height of the horizon line
+    focal: 160,                   // Camera zoom (bigger = more zoomed in)
+    camBack: 80,                  // How far behind the car the camera sits
+    camHeight: 215,               // How high the camera is above the road
+    depthScale: 1.4,              // How stretched-out the world is into the distance
+    farFade: 220,                 // Things fade in out of the dust over this distance
+    nearZ: 40,                    // Things closer than this are behind you
+  },
+  road: {
+    width: 560,                   // How wide the track is (you can't drive off it!)
+    rumbleWidth: 26,              // Width of the striped boundary lines
+    rumbleColorA: '#c1440e',      // Boundary stripe color 1
+    rumbleColorB: '#fff1dc',      // Boundary stripe color 2
+    sandColorA: '#8a5530',        // Wasteland sand color 1
+    sandColorB: '#7b4a28',        // Wasteland sand color 2
+  },
+
+  // ---- Heat-seeking potato missiles (press E) ----
+  missiles: {
+    unlockLevel: 2,               // Level when you get missiles
+    cooldownSeconds: 1.2,         // Time between missiles
+    speed: 520,                   // Missile speed
+    turnRate: 6,                  // How sharply missiles can turn toward a target
+    size: 14,                     // Missile size
+  },
+
+  // ---- Difficulty levels (pick with ← → on the title screen) ----
+  difficulties: [
+    { name: 'EASY',   junkSpeed: 0.75, spawnGap: 1.35, bossHp: -1, xpLostPerBonk: 1, enemyFireRate: 0.65 },
+    { name: 'NORMAL', junkSpeed: 1,    spawnGap: 1,    bossHp: 0,  xpLostPerBonk: 3, enemyFireRate: 1 },
+    { name: 'HARD',   junkSpeed: 1.3,  spawnGap: 0.75, bossHp: 2,  xpLostPerBonk: 5, enemyFireRate: 1.4 },
+  ],
+  startDifficulty: 1,             // 0 = easy, 1 = normal, 2 = hard
 
   // ---- Colors & text ----
   colors: {
@@ -143,7 +205,12 @@ export const CONFIG = {
     title: 'SPUD RACER QUEST',                    // Big title on the start screen
     subtitle: 'Drive {hero} across the wasteland!', // {hero} gets filled in automatically
     start: 'Press SPACE to start',                // Start instructions
-    controls: '← → drive  ·  SPACE shoot / mash / pick  ·  F fry move  ·  P pause  ·  M mute', // Controls hint
+    controls: '← → steer · SPACE shoot / mash / pick · E missile · F fry · P pause · M mute', // Controls hint
+    difficulty: 'DIFFICULTY:  ◀ {d} ▶',          // Difficulty picker on the title screen
+    missileUnlocked: 'POTATO MISSILES! Press E', // Banner when missiles unlock
+    laserIn: 'LASER IN {s}',                     // Boss laser countdown
+    laserWarning: 'LASER! MOVE!',                // Boss laser warning
+    merged: 'TOTS COMBINED!',                    // Two helpers became a big potato
     paused: 'PAUSED',                             // Pause screen
     resume: 'Press P to keep playing',            // Pause screen hint
     gameOver: 'GAME OVER',                        // Game over title (you can't actually lose!)

@@ -4,6 +4,7 @@
 import { CONFIG } from './config.js';
 import { state, handleAction } from './state.js';
 import { setupInput, takeActions } from './input.js';
+import { setMusic } from './audio.js';
 import { updateGame } from './game.js';
 import { drawBackground, drawWorld, drawHUD, drawTitle, drawPaused, drawGameOver } from './render.js';
 
@@ -38,6 +39,7 @@ function frame(now) {
   lastTime = now;
   for (const action of takeActions()) handleAction(action);
   if (state.screen === 'playing') updateGame(dt);
+  setMusic(state.screen === 'playing' && state.bossMusic);
   draw(now / 1000);
   requestAnimationFrame(frame);
 }

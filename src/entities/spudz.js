@@ -4,16 +4,17 @@
 import { CONFIG } from '../config.js';
 import { drawAlienText } from '../alien.js';
 
-export function createSpudz(lap) {
+export function createSpudz(lap, extraHp = 0) {
   const b = CONFIG.boss;
-  const hp = b.hp + (lap - 1) * b.extraHpPerLap;
-  return { x: CONFIG.width / 2, y: 175, r: b.size, hp, maxHp: hp, t: 0, hurtTimer: 0, bombTimer: 1.5 };
+  const hp = Math.max(1, b.hp + (lap - 1) * b.extraHpPerLap + extraHp);
+  return { x: CONFIG.width / 2, y: 175, r: b.size, hp, maxHp: hp, t: 0, hurtTimer: 0, bombTimer: 1.5,
+           minionTimer: 1, mergeTimer: b.mergeEverySeconds, laserTimer: b.laserSeconds, laserPhase: null, laserTime: 0, laserX: 0 };
 }
 
 export function updateSpudz(s, dt) {
   s.t += dt;
   s.hurtTimer = Math.max(0, s.hurtTimer - dt);
-  s.x = CONFIG.width / 2 + Math.sin(s.t * 0.7) * (CONFIG.width / 2 - s.r - 140);
+  s.x = CONFIG.width / 2 + Math.sin(s.t * 0.7) * (CONFIG.road.width / 2 - 60);
 }
 
 export function drawSpudz(ctx, s) {

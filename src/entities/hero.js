@@ -2,6 +2,7 @@
 // To restyle the hero, edit drawCar() (or the colors in config.js).
 
 import { CONFIG } from '../config.js';
+import { clampToRoad } from '../track.js';
 
 const EDGE_GAP = 24;   // space between the hero and the bottom (or top) edge
 const TOP_GAP = 80;    // when gravity flips, stay below the score text
@@ -17,10 +18,10 @@ export function updateHero(hero, dt, input, gravity, speed) {
   if (input.left) move -= 1;
   if (input.right) move += 1;
   if (move === 0 && input.pointerX !== null) {
-    move = Math.max(-1, Math.min(1, (input.pointerX - hero.x) / 30)); // ease in near the finger
+    move = Math.max(-1, Math.min(1, (input.pointerX - CONFIG.width / 2) / 120)); // finger left/right of center steers
   }
   hero.x += move * speed * dt;
-  hero.x = Math.max(hero.w / 2, Math.min(CONFIG.width - hero.w / 2, hero.x));
+  hero.x = clampToRoad(hero.x, hero.w / 2);   // the boundary lines stop you going off track
   hero.y = gravity === 1 ? CONFIG.height - EDGE_GAP - hero.h / 2 : TOP_GAP + hero.h / 2;
   hero.hurtTimer = Math.max(0, hero.hurtTimer - dt);
   hero.slowTimer = Math.max(0, hero.slowTimer - dt);

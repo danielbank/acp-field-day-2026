@@ -9,6 +9,7 @@ import { gainXp, chargeFry, totSize, fireCooldown } from '../rpg.js';
 import { spawnTot } from '../entities/tot.js';
 import { spawnTarget, updateTarget, drawTarget } from '../entities/target.js';
 import { text } from '../text.js';
+import { airAlt } from '../view3d.js';
 
 const S = CONFIG.targets;
 const goal = () => S.toHit + (state.lap - 1) * S.extraPerLap;
@@ -21,7 +22,6 @@ function hitTarget(tg) {
 }
 
 export const targets = {
-  road: true,
   coins: false,
   title: () => CONFIG.text.targetsStage,
   hint: CONFIG.text.targetsHint,
@@ -57,8 +57,15 @@ export const targets = {
     for (const tg of state.targets) hitTarget(tg);
     state.targets = [];
   },
-  draw(ctx) {
-    for (const tg of state.targets) drawTarget(ctx, tg);
+  missileTargets: () => state.targets,
+  onMissileHit(tg) {
+    hitTarget(tg);
+    state.targets = state.targets.filter((t) => t !== tg);
+  },
+  sprites(list) {
+    for (const tg of state.targets) list.push({ obj: tg, alt: airAlt(tg.y), draw: drawTarget });
+  },
+  drawOverlay(ctx) {
     text(ctx, `TARGETS ${state.hits} / ${goal()}`, CONFIG.width / 2, 92, 24, CONFIG.colors.silver);
   },
 };

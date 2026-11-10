@@ -2,10 +2,11 @@
 // Coins move like fallers (y goes down) and get drawn as a gold disc with a shine.
 
 import { CONFIG } from '../config.js';
+import { ROAD_LEFT } from '../track.js';
 
 export function spawnCoin() {
   const r = CONFIG.coins.size;
-  return { x: r + Math.random() * (CONFIG.width - r * 2), y: -r, r, vy: CONFIG.coins.speed, t: Math.random() * 6 };
+  return { x: ROAD_LEFT + r + Math.random() * (CONFIG.road.width - r * 2), y: -r, r, vy: CONFIG.coins.speed, t: Math.random() * 6 };
 }
 
 export function updateCoin(c, dt) {

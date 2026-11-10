@@ -2,6 +2,8 @@
 // To add a new look, write a drawSomething(ctx, f) function and add it to LOOKS.
 
 import { CONFIG } from '../config.js';
+import { ROAD_LEFT, ROAD_RIGHT } from '../track.js';
+import { drawPotatoMissile } from './missile.js';
 
 const rand = (min, max) => min + Math.random() * (max - min);
 
@@ -11,7 +13,7 @@ export function spawnFaller(lap, gravity) {
   const speed = Math.min(f.maxSpeed, f.startSpeed + (lap - 1) * CONFIG.speedUpPerLap) * rand(0.8, 1.2);
   const spikes = Array.from({ length: 12 }, (_, i) => (i % 2 === 0 ? 1 : 0.72) * rand(0.92, 1.08));
   return {
-    x: rand(r, CONFIG.width - r),
+    x: rand(ROAD_LEFT + r, ROAD_RIGHT - r),
     y: gravity === 1 ? -r : CONFIG.height + r,   // start just off the top (or bottom if flipped)
     r,
     vy: speed * gravity,
@@ -111,6 +113,18 @@ function drawBeatBomb(ctx, f) {
   ctx.stroke();
 }
 
+// A tater-tot helper's shot: a glowing orange pellet.
+function drawPellet(ctx, f) {
+  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, f.r);
+  g.addColorStop(0, '#fff3b0');
+  g.addColorStop(0.5, '#ffb703');
+  g.addColorStop(1, 'rgba(255,123,84,0)');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.arc(0, 0, f.r, 0, Math.PI * 2);
+  ctx.fill();
+}
+
 // Two little dot eyes so the falling things look friendly, not scary.
 function drawFace(ctx, r) {
   ctx.fillStyle = '#1a1026';
@@ -120,4 +134,5 @@ function drawFace(ctx, r) {
   ctx.fill();
 }
 
-const LOOKS = { asteroid: drawAsteroid, ball: drawBall, junk: drawJunk, beatBomb: drawBeatBomb };
+const LOOKS = { asteroid: drawAsteroid, ball: drawBall, junk: drawJunk, beatBomb: drawBeatBomb,
+  pellet: drawPellet, potatoMissile: drawPotatoMissile };

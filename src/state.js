@@ -10,6 +10,7 @@ const BEST_LEVEL_KEY = 'spud-racer-best-level';
 export const state = {
   screen: 'title',
   best: loadBest(),      // highest level ever reached
+  difficulty: CONFIG.startDifficulty,   // index into CONFIG.difficulties (stays the same between games)
 };
 
 // Fresh values for a brand-new quest.
@@ -19,6 +20,10 @@ export function resetRound() {
     fallers: [],         // space junk and beat-bombs
     coins: [],
     tots: [],
+    missiles: [],        // your heat-seeking potato missiles
+    minions: [],         // DJ Spudz's tater-tot helpers
+    signs: [],           // roadside signs
+    bossMusic: false,    // should the boss beat be playing?
     targets: [],
     popups: [],          // little floating "+1 XP" texts
     boss: null,          // the UFO from the bossAppears twist
@@ -40,6 +45,8 @@ export function resetRound() {
     spawnTimer: 0,
     coinTimer: 0,
     fireTimer: 0,
+    missileTimer: 0,
+    missilePresses: 0,   // E presses this frame
     presses: 0,          // SPACE presses this frame (shoot / mash / pick)
     fryPresses: 0,       // F presses this frame
     fryCharge: 0,
@@ -56,8 +63,9 @@ export function showBanner(text, seconds = 1.6) {
   state.banner = { text, timeLeft: seconds };
 }
 
-export function addPopup(text, x, y, color) {
-  state.popups.push({ text, x, y, color, timeLeft: 1 });
+// x, y are game-world spots (shown in 3D), unless onScreen is true (plain screen pixels).
+export function addPopup(text, x, y, color, onScreen = false) {
+  state.popups.push({ text, x, y, color, onScreen, rise: 0, timeLeft: 1 });
 }
 
 export function saveBest(level) {
@@ -72,10 +80,16 @@ export function endRound() {
 }
 
 // The screen state machine: what each action does on each screen.
-// Actions come from input.js: 'start', 'tap', 'fry', 'pause', 'mute', 'blur'.
+// Actions come from input.js: 'start', 'tap', 'fry', 'missile', 'left', 'right', 'pause', 'mute', 'blur'.
 export function handleAction(action) {
   if (action === 'mute') return toggleMute();
   const screen = state.screen;
+  if (screen === 'title' && (action === 'left' || action === 'right')) {
+    const n = CONFIG.difficulties.length;
+    state.difficulty = (state.difficulty + (action === 'left' ? n - 1 : 1)) % n;
+    unlockAudio();
+    return playSound('coin');
+  }
   if ((screen === 'title' || screen === 'gameover') && (action === 'start' || action === 'tap')) {
     unlockAudio();
     resetRound();
@@ -87,6 +101,8 @@ export function handleAction(action) {
     state.presses += 1;
   } else if (screen === 'playing' && action === 'fry') {
     state.fryPresses += 1;
+  } else if (screen === 'playing' && action === 'missile') {
+    state.missilePresses += 1;
   } else if (screen === 'paused' && (action === 'pause' || action === 'start' || action === 'tap')) {
     state.screen = 'playing';
   }

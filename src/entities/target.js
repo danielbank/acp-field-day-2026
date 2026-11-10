@@ -2,21 +2,22 @@
 // They slide side to side and bob up and down, bouncing off the walls.
 
 import { CONFIG } from '../config.js';
+import { ROAD_LEFT, ROAD_RIGHT } from '../track.js';
 
 export function spawnTarget() {
   const s = CONFIG.targets;
   const r = s.size;
   const fromLeft = Math.random() < 0.5;
-  return { x: fromLeft ? r : CONFIG.width - r, baseY: 130 + Math.random() * 200, y: 0, r,
+  return { x: fromLeft ? ROAD_LEFT + r : ROAD_RIGHT - r, baseY: 300 + Math.random() * 120, y: 0, r,
            vx: (fromLeft ? 1 : -1) * s.speed * (0.8 + Math.random() * 0.5), t: Math.random() * 6 };
 }
 
 export function updateTarget(tg, dt) {
   tg.t += dt;
   tg.x += tg.vx * dt;
-  if (tg.x < tg.r || tg.x > CONFIG.width - tg.r) {
+  if (tg.x < ROAD_LEFT + tg.r || tg.x > ROAD_RIGHT - tg.r) {
     tg.vx *= -1;
-    tg.x = Math.max(tg.r, Math.min(CONFIG.width - tg.r, tg.x));
+    tg.x = Math.max(ROAD_LEFT + tg.r, Math.min(ROAD_RIGHT - tg.r, tg.x));
   }
   tg.y = tg.baseY + Math.sin(tg.t * 2) * 20;
 }

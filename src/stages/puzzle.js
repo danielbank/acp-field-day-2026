@@ -7,10 +7,11 @@ import { playSound } from '../audio.js';
 import { gainXp, chargeFry } from '../rpg.js';
 import { drawGlyph } from '../alien.js';
 import { text } from '../text.js';
+import { ROAD_LEFT } from '../track.js';
 
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 const shuffle = (arr) => arr.map((v) => [Math.random(), v]).sort((a, b) => a[0] - b[0]).map((p) => p[1]);
-const choiceX = (i) => (CONFIG.width * (i + 1)) / 4;
+const choiceX = (i) => ROAD_LEFT + (CONFIG.road.width * (i + 0.5)) / 3;   // three lanes on the road
 const CHOICE_Y = 440;
 
 function makeChoices(p) {
@@ -32,11 +33,12 @@ function choose(p, letter) {
   if (letter !== p.word[p.index]) {
     p.shake = 0.4;
     playSound('wrong');
-    addPopup(CONFIG.text.wrong, state.hero.x, state.hero.y - 70, CONFIG.colors.warning);
+    addPopup(CONFIG.text.wrong, CONFIG.width / 2, CHOICE_Y + 70, CONFIG.colors.warning, true);
     return;
   }
   playSound('correct');
-  gainXp(CONFIG.puzzle.xp, choiceX(p.choices.indexOf(letter)), CHOICE_Y - 60);
+  gainXp(CONFIG.puzzle.xp);
+  addPopup(`+${CONFIG.puzzle.xp} XP`, choiceX(p.choices.indexOf(letter)), CHOICE_Y - 60, CONFIG.colors.accent, true);
   chargeFry(3);
   p.index += 1;
   if (p.index < p.word.length) return makeChoices(p);
@@ -45,7 +47,6 @@ function choose(p, letter) {
 }
 
 export const puzzle = {
-  road: false,
   coins: false,
   title: () => CONFIG.text.puzzleStage,
   junkEvery: () => 0,
@@ -71,7 +72,7 @@ export const puzzle = {
     const p = state.puzzle;
     if (p.index < p.word.length) choose(p, p.word[p.index]);
   },
-  draw(ctx) {
+  drawOverlay(ctx) {
     const p = state.puzzle;
     drawGate(ctx, p);
     drawChart(ctx, p);
@@ -129,4 +130,5 @@ function drawChoices(ctx, p) {
     ctx.strokeRect(x - 60, CHOICE_Y - 42, 120, 84);
     text(ctx, ch, x, CHOICE_Y, 56, i === sel ? CONFIG.colors.accent : CONFIG.colors.text);
   });
+  text(ctx, '▲', state.hero.x, CHOICE_Y + 58, 26, CONFIG.colors.accent);   // where your car is
 }

@@ -14,7 +14,8 @@ export const currentStage = () => STAGES[state.stageIndex];
 export function startStage() {
   const stage = currentStage();
   Object.assign(state, { stageStarted: true, stageTime: 0, stageDoneTimer: 0, fallers: [], coins: [],
-                         tots: [], targets: [], spudz: null, megaTot: null, puzzle: null });
+                         tots: [], missiles: [], targets: [], minions: [], signs: [], spudz: null,
+                         megaTot: null, puzzle: null, bossMusic: false });
   stage.start();
   showBanner(stage.title(), 2);
 }
