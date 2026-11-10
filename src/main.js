@@ -5,6 +5,7 @@ import { CONFIG } from './config.js';
 import { state, handleAction } from './state.js';
 import { setupInput, takeActions } from './input.js';
 import { updateGame, gameAction } from './game.js';
+import { updateMusic } from './music.js';
 import { drawBackground, drawWorld, drawHUD, drawTitle, drawPaused, drawGameOver } from './render.js';
 
 const MAX_DT = 1 / 20;   // if the computer hiccups, don't let things teleport
@@ -42,6 +43,7 @@ function frame(now) {
   }
   if (state.screen === 'playing') updateGame(dt);
   if (state.screen === 'title') state.car.z += 4000 * dt;          // cruise along behind the title
+  updateMusic(state.screen === 'playing', Boolean(state.wave));
   draw(now / 1000);
   requestAnimationFrame(frame);
 }

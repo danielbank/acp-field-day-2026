@@ -172,6 +172,25 @@ export const CONFIG = {
   // ---- Sound ----
   soundOn: true,                  // Start with sound on? (M toggles it during the game)
   volume: 0.25,                   // How loud sound effects are (0 = silent, 1 = LOUD)
+
+  // ---- Music: compose it! Each spot is one short step. '-' = rest (silence). ----
+  // Notes are a letter + octave: 'C4', 'D#4', 'Bb3'… bigger number = higher. Lists can be any length.
+  music: {
+    on: true,                     // Play music during the race?
+    volume: 0.08,                 // How loud the music is
+    speed: 140,                   // Beats per minute (bigger = faster)
+    waveSpeed: 170,               // Even faster during alien blob waves!
+    melodySound: 'square',        // 'square', 'triangle', 'sine' or 'sawtooth'
+    bassSound: 'triangle',
+    melody: [
+      'C5', '-', 'E5', 'G5',  'A5', '-', 'G5', 'E5',  'D5', '-', 'E5', '-',  'C5', '-', '-', '-',
+      'A4', '-', 'C5', 'D5',  'E5', '-', 'D5', 'C5',  'D5', '-', 'G4', '-',  'C5', '-', '-', '-',
+    ],
+    bass: [
+      'C3', '-', 'C3', 'G2',  'A2', '-', 'A2', 'E2',  'F2', '-', 'F2', 'C3',  'G2', '-', 'G2', 'B2',
+    ],
+    drums: ['kick', 'hat', 'snare', 'hat', 'kick', 'kick', 'snare', 'hat'], // 'kick', 'snare', 'hat' or '-'
+  },
 };
 
 // ---- TWISTS: ready-made surprises. Flip one to true to turn it on! ----

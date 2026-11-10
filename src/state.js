@@ -5,6 +5,7 @@ import { CONFIG } from './config.js';
 import { SEG } from './road.js';
 import { createCar } from './entities/car.js';
 import { unlockAudio, playSound, toggleMute } from './audio.js';
+import { restartMusic } from './music.js';
 
 const BEST_SCORE_KEY = 'robo-racer-best';
 
@@ -59,6 +60,7 @@ export function endRound(reason) {
 function startRound(mode) {
   unlockAudio();
   resetRound(mode);
+  restartMusic();
   state.screen = 'playing';
   showBanner(mode === 'sandbox' ? CONFIG.text.freePlay : CONFIG.text.go, 1.2, CONFIG.colors.good);
   playSound('start');
