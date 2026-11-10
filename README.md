@@ -1,72 +1,53 @@
-# Robo Dodge 🤖☄️
+# AI Vibe Coding · ACP Field Day 2026
 
-A tiny dodge-the-falling-things game for live "vibe coding" with middle schoolers.
-The class shouts ideas; you prompt Claude; the game changes live.
+A gallery of the four games that **Arizona College Prep Middle School** students built with
+[Claude Code](https://claude.com/claude-code) during the **AI Vibe Coding** sessions at Field Day 2026.
+In each session the class shouted out ideas, Claude asked questions until everyone agreed on a plan,
+and then it built the game live on the projector.
 
-Plain JavaScript + `<canvas>` + Vite. No runtime dependencies, no external assets, works fully offline.
+### 🎮 Play them: **https://danielbank.github.io/acp-field-day-2026/**
 
-## Setup (the night before)
+📑 Presentation: [Slides (PDF)](docs/ai-vibe-coding-acp-field-day-2026.pdf) · [Slides (PowerPoint)](docs/ai-vibe-coding-acp-field-day-2026.pptx)
 
-```sh
-nvm use          # Node 26 LTS (see .nvmrc)
-npm install
-npm run dev      # open the printed URL
-```
+## The sessions
 
-## Pre-flight checklist (morning of)
+| | Session | Game | Play | Code |
+| --- | --- | --- | --- | --- |
+| 1 | Flappy FPS with Dinosaurs and a Raccoon | Sky Board Showdown | [▶ Play](https://danielbank.github.io/acp-field-day-2026/flappy-fps-dinosaurs/) | [`flappy-fps-dinosaurs`](https://github.com/danielbank/acp-field-day-2026/tree/flappy-fps-dinosaurs) |
+| 2 | Robo Racer with Space Invaders and a Car Shop | Robo Racer | [▶ Play](https://danielbank.github.io/acp-field-day-2026/robo-racer/) | [`robo-racer`](https://github.com/danielbank/acp-field-day-2026/tree/robo-racer) |
+| 3 | Spud Quest with Alien Language, DJ Spudz, and Tater Tot Minions | Spud Racer Quest | [▶ Play](https://danielbank.github.io/acp-field-day-2026/spud-quest/) | [`spud-quest`](https://github.com/danielbank/acp-field-day-2026/tree/spud-quest) |
+| 4 | 2.5D Robot Knight with Character Customization | Robo Knights | [▶ Play](https://danielbank.github.io/acp-field-day-2026/robo-knight/) | [`robo-knight`](https://github.com/danielbank/acp-field-day-2026/tree/robo-knight) |
 
-- [ ] `npm run dev` starts and the game shows **ROBO DODGE** in the browser
-- [ ] Press Space, play a round, die, press Space again
-- [ ] **Sound works** (start blip, bonk, game-over tune). Check projector/HDMI audio. `M` toggles mute.
-- [ ] `npm run build:offline` creates `dist-offline/game.html`; double-click it to make sure it opens
-- [ ] Copy `game.html` to a USB stick / cloud drive just in case
-- [ ] `git status` is clean and you're on `main`
+Every session started from the same tiny starter game, **Robo Dodge**
+([play](https://danielbank.github.io/acp-field-day-2026/robo-dodge-starter/) · [code](https://github.com/danielbank/acp-field-day-2026/tree/c2495c5)).
 
-## Running a session
+The [gallery page](https://danielbank.github.io/acp-field-day-2026/) also lists the prompts each class used:
+their requirements, the choices they voted on, and the changes they asked for afterwards.
+A few prompts were lightly edited to keep them school-friendly.
 
-```sh
-npm run session -- 6th-period   # creates + switches to session/YYYY-MM-DD-6th-period from main
-npm run dev                     # keep this running; the page reloads on every save
-claude                          # start Claude Code in this folder
-```
+## What's in this repo
 
-Then riff: take an idea from the class, prompt it, watch the game change. Claude announces each change,
-commits it with a plain-English message, and tells the class how to see it (rules are in `CLAUDE.md`).
-
-- Undo the last change: ask Claude to "undo that", or run `git revert --no-edit HEAD`.
-- See what the class built: `git log --oneline`.
-- `main` stays as the clean starter for the next class.
-
-Controls: ← → or A/D to move · drag on touchscreens · Space to start · P pause · M mute.
-The game auto-pauses when the browser window loses focus (e.g. when you click into the terminal).
-
-## Offline fallback
-
-If a school computer won't run Node: open `dist-offline/game.html` (double-click, no server needed).
-Rebuild it any time with `npm run build:offline`. It's one self-contained file (~12 KB).
-
-## Handy scripts
-
-| Command | What it does |
+| Path | What it is |
 | --- | --- |
-| `npm run dev` | Dev server (with `--host`, so phones/tablets on the same Wi-Fi can open the Network URL) |
-| `npm run build` | Normal build into `dist/` |
-| `npm run build:offline` | One-file build: `dist-offline/game.html` |
-| `npm run check` | Runs both builds and fails loudly if anything breaks |
-| `npm run session -- <name>` | New `session/YYYY-MM-DD-<name>` branch from `main` (refuses if you have uncommitted changes) |
+| `index.html` | The gallery page |
+| `assets/` | Game screenshots |
+| `docs/` | The presentation, as PDF and PowerPoint |
+| `build-site.sh` | Builds the gallery plus every game branch into one folder (`_site/`) |
+| `.github/workflows/pages.yml` | Runs `build-site.sh` and publishes to GitHub Pages on every push to `main` |
 
-## Starter prompts the class can pick from
+Each game lives on its own branch. They're plain JavaScript + `<canvas>` + [Vite](https://vite.dev), with no runtime
+dependencies and no external assets. To run one locally:
 
-1. "Make the asteroids glow with a bright orange outline."
-2. "Turn the hero into a round, smiling alien instead of a robot."
-3. "Make the bonk sound sillier, like a cartoon boing."
-4. "Turn on the speed-up-over-time twist."
-5. "Turn on the gravity-flips twist."
-6. "Turn on the boss twist, and make the boss rainbow colored."
-7. "Add a golden star power-up that gives you an extra life when you catch it."
-8. "Make the game-over screen show a random funny message, like 'The asteroids send their regards.'"
-9. "Add a secret cheat code: typing ROBOT on the title screen gives you 10 lives."
-10. "Add a two-player mode: a second robot controlled with J and L."
+```sh
+git switch robo-knight   # or flappy-fps-dinosaurs, robo-racer, spud-quest
+npm install
+npm run dev
+```
 
-Tips: it's a hit to let the class vote on numbers in `src/config.js` (speeds, sizes, lives, colors)
-between bigger ideas. Every knob there has a plain-English comment.
+To build the whole site locally: `./build-site.sh` (needs Node 22+), then open `_site/index.html` through any static server.
+
+## License
+
+The code is free and open, released into the public domain under [the Unlicense](LICENSE).
+This is an independent recap made by a volunteer; it isn't an official Arizona College Preparatory publication.
+Want something changed or removed? [Open an issue](https://github.com/danielbank/acp-field-day-2026/issues).

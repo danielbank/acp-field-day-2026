@@ -1,17 +1,378 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-    <title>Robo Dodge</title>
-    <style>
-      html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
-      body { display: flex; align-items: center; justify-content: center; }
-      canvas { display: block; touch-action: none; }
-    </style>
-  </head>
-  <body>
-    <canvas id="game"></canvas>
-    <script type="module" src="/src/main.js"></script>
-  </body>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Vibe Coding · ACP Field Day 2026</title>
+  <meta name="description" content="Four games built live with Claude Code by Arizona College Prep Middle School students at Field Day 2026." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23502b7f'/%3E%3Ctext x='16' y='22' font-family='Arial' font-weight='900' font-size='15' text-anchor='middle' fill='white'%3EAI%3C/text%3E%3C/svg%3E" />
+  <style>
+    /* Purple and silver color scheme */
+    :root {
+      --acp-purple: #502b7f;
+      --acp-lavender: #856fa4;
+      --acp-silver: #a3a8ab;
+      --acp-mist: #e2e3df;
+      --acp-ink: #231f20;
+      --bg: #f6f5f8;
+      --card: #ffffff;
+      --text: var(--acp-ink);
+      --muted: #5c5862;
+      --line: #dcd8e3;
+      --chip: #efe9f6;
+      color-scheme: light;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #17121f;
+        --card: #221b2d;
+        --text: #f3f1f6;
+        --muted: #b9b3c4;
+        --line: #3a3048;
+        --chip: #33284a;
+        color-scheme: dark;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    a { color: inherit; }
+    .wrap { max-width: 1120px; margin: 0 auto; padding-inline: 20px; }
+
+    /* ---- header ---- */
+    header.hero {
+      background:
+        radial-gradient(1200px 400px at 85% -10%, rgba(133,111,164,0.55), transparent 60%),
+        linear-gradient(135deg, #3b1e60 0%, var(--acp-purple) 55%, #6a4596 100%);
+      color: #fff;
+      padding-block: 48px 56px;
+      border-bottom: 6px solid var(--acp-silver);
+    }
+    .eyebrow {
+      text-transform: uppercase; letter-spacing: 0.18em; font-weight: 700; font-size: 0.8rem;
+      color: var(--acp-mist); opacity: 0.9; margin: 0 0 6px;
+    }
+    h1 {
+      font-size: clamp(2.4rem, 6vw, 4.2rem); line-height: 1; margin: 0 0 14px;
+      font-weight: 900; letter-spacing: -0.01em; text-transform: uppercase;
+    }
+    .lead { font-size: 1.15rem; max-width: 640px; margin: 0 0 22px; color: #f0ecf6; }
+    .buttons { display: flex; flex-wrap: wrap; gap: 10px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font-weight: 700;
+      padding: 10px 16px; border-radius: 999px; border: 2px solid transparent; font-size: 0.95rem;
+    }
+    .btn-light { background: #fff; color: var(--acp-purple); }
+    .btn-ghost { border-color: rgba(255,255,255,0.7); color: #fff; }
+    .btn-primary { background: var(--acp-purple); color: #fff; }
+    .btn-outline { border-color: var(--acp-lavender); color: var(--text); }
+    .btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    .btn:focus-visible { outline: 3px solid var(--acp-lavender); outline-offset: 2px; }
+
+    /* ---- how it worked ---- */
+    section { padding-block: 44px 8px; }
+    h2 { font-size: 1.7rem; margin: 0 0 18px; text-transform: uppercase; letter-spacing: 0.02em; }
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .step { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
+    .step b { display: block; color: var(--acp-lavender); font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; }
+    .step p { margin: 6px 0 0; color: var(--muted); }
+
+    /* ---- session cards ---- */
+    .session {
+      background: var(--card); border: 1px solid var(--line); border-radius: 18px; overflow: hidden;
+      margin-bottom: 28px; box-shadow: 0 6px 24px rgba(35,31,32,0.06);
+    }
+    .session-head {
+      display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px;
+      padding: 18px 24px; border-bottom: 1px solid var(--line);
+      background: linear-gradient(90deg, rgba(80,43,127,0.10), transparent 70%);
+    }
+    .num {
+      background: var(--acp-purple); color: #fff; font-weight: 800; border-radius: 8px;
+      padding: 2px 10px; font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .session-head h3 { margin: 0; font-size: 1.35rem; }
+    .game-name { color: var(--muted); font-weight: 600; }
+    .session-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 24px; padding: 24px; }
+    .shot { border-radius: 12px; width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; display: block; background: #000; }
+    .controls { font-size: 0.85rem; color: var(--muted); margin: 10px 0 14px; }
+    .controls kbd { font: inherit; font-weight: 700; color: var(--text); }
+    .prompts h4 {
+      margin: 0 0 8px; font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--acp-lavender);
+    }
+    .prompts h4:not(:first-child) { margin-top: 18px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+    .chips li { background: var(--chip); border-radius: 999px; padding: 4px 12px; font-size: 0.92rem; }
+    .choices { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 0.93rem; }
+    .choices li span { color: var(--muted); }
+    .asks { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 6px; }
+    .asks li {
+      border-left: 4px solid var(--acp-lavender); background: var(--chip); padding: 6px 12px;
+      border-radius: 0 8px 8px 0; font-size: 0.93rem;
+    }
+    .edited { color: var(--acp-lavender); font-weight: 800; text-decoration: none; }
+
+    .starter {
+      display: grid; grid-template-columns: 220px 1fr; gap: 20px; align-items: center;
+      background: var(--card); border: 1px dashed var(--acp-lavender); border-radius: 14px; padding: 16px;
+    }
+    .starter img { width: 100%; height: auto; border-radius: 10px; display: block; }
+    .starter p { margin: 4px 0 10px; color: var(--muted); }
+
+    footer { padding-block: 36px 48px; color: var(--muted); font-size: 0.9rem; }
+    footer .note { border-top: 1px solid var(--line); padding-top: 18px; }
+
+    @media (max-width: 820px) {
+      .steps { grid-template-columns: 1fr; }
+      .session-body { grid-template-columns: 1fr; padding: 18px; }
+      .starter { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap">
+      <div>
+        <p class="eyebrow">Arizona College Prep Middle School · Field Day 2026</p>
+        <h1>AI Vibe Coding</h1>
+        <p class="lead">Four sessions, four video games. Students shouted out ideas, Claude Code asked questions until
+          everyone agreed on a plan, then built each game live on the projector. Click any game to play it in your browser.</p>
+        <div class="buttons">
+          <a class="btn btn-light" href="docs/ai-vibe-coding-acp-field-day-2026.pdf">Slides (PDF)</a>
+          <a class="btn btn-ghost" href="docs/ai-vibe-coding-acp-field-day-2026.pptx">Slides (PowerPoint)</a>
+          <a class="btn btn-ghost" href="https://github.com/danielbank/acp-field-day-2026">Code on GitHub</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="wrap" aria-labelledby="how">
+      <h2 id="how">How it worked</h2>
+      <div class="steps">
+        <div class="step"><b>1 · Ideas</b><p>The class called out everything they wanted in a game: dinosaurs, potatoes, dragons, car shops…</p></div>
+        <div class="step"><b>2 · Agree on a plan</b><p>Claude asked multiple-choice questions, and the class voted until we had a shared spec.</p></div>
+        <div class="step"><b>3 · Build &amp; remix</b><p>Claude built the game live from a tiny starter, then the class asked for changes and watched them appear.</p></div>
+      </div>
+    </section>
+
+    <section class="wrap" aria-labelledby="games">
+      <h2 id="games">The games</h2>
+
+      <!-- Session 1 -->
+      <article class="session" id="session-1">
+        <div class="session-head">
+          <span class="num">Session 1</span>
+          <h3>Flappy FPS with Dinosaurs and a Raccoon</h3>
+          <span class="game-name">Sky Board Showdown</span>
+        </div>
+        <div class="session-body">
+          <div>
+            <a href="flappy-fps-dinosaurs/"><img class="shot" src="assets/screenshots/flappy-fps-dinosaurs.jpg" alt="Sky Board Showdown: a cartoon dinosaur riding a flying skateboard in front of a crosshair" loading="lazy" /></a>
+            <p class="controls"><kbd>Space</kbd> flap · <kbd>Mouse</kbd> / arrows aim · <kbd>Click</kbd> or <kbd>F</kbd> fire · <kbd>P</kbd> pause · <kbd>M</kbd> mute</p>
+            <div class="buttons">
+              <a class="btn btn-primary" href="flappy-fps-dinosaurs/">▶ Play</a>
+              <a class="btn btn-outline" href="https://github.com/danielbank/acp-field-day-2026/tree/flappy-fps-dinosaurs">See the code</a>
+            </div>
+          </div>
+          <div class="prompts">
+            <h4>What the class asked for</h4>
+            <ul class="chips">
+              <li>An FPS / flappy bird game</li><li>Lasers</li><li>5 dinosaurs</li><li>Raccoon</li>
+              <li>Flying skateboards</li><li>Boss fight</li><li>Random danger zones <a class="edited" href="#edited">*</a></li>
+            </ul>
+            <h4>Choices they voted on</h4>
+            <ul class="choices">
+              <li><span>The view?</span> Cockpit view, and you shoot down the dinosaurs</li>
+              <li><span>The flappy part?</span> Flap to stay up</li>
+              <li><span>Who is the raccoon?</span> The boss: a raccoon mastermind</li>
+              <li><span>The 5 dinosaurs?</span> 5 different dino types</li>
+              <li><span>The danger zones?</span> Laser walls</li>
+            </ul>
+            <h4>Then they asked for…</h4>
+            <ul class="asks">
+              <li>It's too hard to flap and shoot at the same time</li>
+              <li>Shooting should be bound to a key press, press a certain number of times, autoshoot</li>
+              <li>Make the dinosaurs look like dinosaurs</li>
+              <li>Make a health bar with 0–100 health (instead of 3 lives)</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <!-- Session 2 -->
+      <article class="session" id="session-2">
+        <div class="session-head">
+          <span class="num">Session 2</span>
+          <h3>Robo Racer with Space Invaders and a Car Shop</h3>
+          <span class="game-name">Robo Racer</span>
+        </div>
+        <div class="session-body">
+          <div>
+            <a href="robo-racer/"><img class="shot" src="assets/screenshots/robo-racer.jpg" alt="Robo Racer: a neon space highway curving past planets with cars and coins ahead" loading="lazy" /></a>
+            <p class="controls"><kbd>← →</kbd> steer · <kbd>↑</kbd> gas · <kbd>↓</kbd> brake · <kbd>Space</kbd> jump · <kbd>X</kbd> goo gatling · <kbd>Shift</kbd> turbo · <kbd>F</kbd> free play · <kbd>C</kbd> car shop</p>
+            <div class="buttons">
+              <a class="btn btn-primary" href="robo-racer/">▶ Play</a>
+              <a class="btn btn-outline" href="https://github.com/danielbank/acp-field-day-2026/tree/robo-racer">See the code</a>
+            </div>
+          </div>
+          <div class="prompts">
+            <h4>What the class asked for</h4>
+            <ul class="chips">
+              <li>Sidescroller / FPS</li><li>Jumping over obstacles</li><li>Music</li>
+              <li>Open-world car racing <a class="edited" href="#edited">*</a></li><li>Demolition</li><li>Checkpoints</li>
+              <li>Space invaders</li><li>Point-boosting powerups</li><li>Sandbox</li>
+            </ul>
+            <h4>Choices they voted on</h4>
+            <ul class="choices">
+              <li><span>The look?</span> Fake-3D first person</li>
+              <li><span>Who do you play?</span> Always a car</li>
+              <li><span>Where's the race?</span> A space highway</li>
+              <li><span>The space invaders?</span> Alien-blob boss waves at checkpoints, aim while driving</li>
+              <li><span>Powerups?</span> Turbo boost, coin magnet, mega jump spring, 2× points star</li>
+              <li><span>Sandbox?</span> A free-play mode</li>
+              <li><span>Music?</span> The kids compose it</li>
+            </ul>
+            <h4>Then they asked for…</h4>
+            <ul class="asks">
+              <li>Add rapid-fire goo blasters <a class="edited" href="#edited">*</a></li>
+              <li>If you are not on the track you fall off <a class="edited" href="#edited">*</a></li>
+              <li>Need a health bar</li>
+              <li>Look more realistic</li>
+              <li>Loud alarm when you crash out <a class="edited" href="#edited">*</a></li>
+              <li>Car shop that you can buy stuff with the coins</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <!-- Session 3 -->
+      <article class="session" id="session-3">
+        <div class="session-head">
+          <span class="num">Session 3</span>
+          <h3>Spud Quest with Alien Language, DJ Spudz, and Tater Tot Minions</h3>
+          <span class="game-name">Spud Racer Quest</span>
+        </div>
+        <div class="session-body">
+          <div>
+            <a href="spud-quest/"><img class="shot" src="assets/screenshots/spud-quest.jpg" alt="Spud Racer Quest: driving a potato rocket car down a desert road toward a green planet" loading="lazy" /></a>
+            <p class="controls"><kbd>← →</kbd> steer · <kbd>Space</kbd> shoot / mash / pick · <kbd>E</kbd> potato missile · <kbd>F</kbd> fry · <kbd>P</kbd> pause · <kbd>M</kbd> mute</p>
+            <div class="buttons">
+              <a class="btn btn-primary" href="spud-quest/">▶ Play</a>
+              <a class="btn btn-outline" href="https://github.com/danielbank/acp-field-day-2026/tree/spud-quest">See the code</a>
+            </div>
+          </div>
+          <div class="prompts">
+            <h4>What the class asked for</h4>
+            <ul class="chips">
+              <li>Cars racing</li><li>Get to a destination with coins on the way</li><li>Space and rockets</li>
+              <li>Ultra-realism / desert wasteland <a class="edited" href="#edited">*</a></li><li>A galactic alphabet</li><li>Targets</li>
+              <li>Instead of people, potatoes</li><li>Button mashing</li><li>Boss fight</li>
+              <li>A rapper boss <a class="edited" href="#edited">*</a></li><li>Spooky monsters <a class="edited" href="#edited">*</a></li>
+              <li>RPG</li><li>Puzzle game</li>
+            </ul>
+            <h4>Choices they voted on</h4>
+            <ul class="choices">
+              <li><span>The quest?</span> An endless loop of stages</li>
+              <li><span>Coins?</span> Earn XP and level up</li>
+              <li><span>The alphabet?</span> Our own invented space alphabet, used in a match-the-symbol puzzle gate</li>
+              <li><span>What does the potato shoot?</span> Mini tater tots</li>
+              <li><span>Beating DJ Spudz?</span> Mash to power up a mega-tot</li>
+              <li><span>The potato people?</span> A potato crowd at the boss</li>
+              <li><span>Getting bonked?</span> Never lose, just slow down</li>
+            </ul>
+            <h4>Then they asked for…</h4>
+            <ul class="asks">
+              <li>3D first person</li>
+              <li>Boundary lines so you can't go off track</li>
+              <li>Boss music</li>
+              <li>Boss has mini helpers (tater tots)</li>
+              <li>Better graphics (ultra-realism)</li>
+              <li>Boss shoots projectiles (and the tater tots as well)</li>
+              <li>The tater tots can combine into bigger potatoes</li>
+              <li>30 seconds to beat the boss or he shoots a big laser that you have to dodge <a class="edited" href="#edited">*</a></li>
+              <li>Difficulty levels</li>
+              <li>Heat-seeking potato missiles</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+
+      <!-- Session 4 -->
+      <article class="session" id="session-4">
+        <div class="session-head">
+          <span class="num">Session 4</span>
+          <h3>2.5D Robot Knight with Character Customization</h3>
+          <span class="game-name">Robo Knights</span>
+        </div>
+        <div class="session-body">
+          <div>
+            <a href="robo-knight/"><img class="shot" src="assets/screenshots/robo-knight.jpg" alt="Robo Knights: a robot knight fighting goo blobs and baby dragons in a 3D castle courtyard" loading="lazy" /></a>
+            <p class="controls"><kbd>WASD</kbd> move · <kbd>Click</kbd> attack · <kbd>Right-click</kbd> / <kbd>E</kbd> power attack · <kbd>Space</kbd> ability · <kbd>Q</kbd> trap · <kbd>P</kbd> pause · <kbd>M</kbd> mute</p>
+            <div class="buttons">
+              <a class="btn btn-primary" href="robo-knight/">▶ Play</a>
+              <a class="btn btn-outline" href="https://github.com/danielbank/acp-field-day-2026/tree/robo-knight">See the code</a>
+            </div>
+          </div>
+          <div class="prompts">
+            <h4>What the class asked for</h4>
+            <ul class="chips">
+              <li>Boss battle with a dragon and a flaming sword</li><li>Action of some sort</li><li>VEX-style robots</li>
+              <li>Upgrades</li><li>Stores where you can get stuff</li><li>Booby traps</li><li>Hordes of mobs</li>
+              <li>2.5D graphics</li><li>Roles to specialize in</li><li>Enchantments</li><li>Character customization</li>
+            </ul>
+            <h4>Choices they voted on</h4>
+            <ul class="choices">
+              <li><span>The game?</span> An arena brawler, waves of mobs, then the dragon</li>
+              <li><span>The hero?</span> A robot knight</li>
+              <li><span>Roles?</span> Bonker, Zapper, Builder and Fixer (all four!)</li>
+              <li><span>The store?</span> A shop you walk into between waves</li>
+              <li><span>The flaming sword?</span> The dragon drops it as a prize, then New Game+</li>
+              <li><span>Booby traps?</span> Arena hazards, Builder traps, and sneaky mobs that set traps</li>
+              <li><span>Mobs?</span> Junk-bots, goo blobs, baby dragons, bomb beetles</li>
+              <li><span>Customize?</span> Colors, helmet, wheels vs legs, name</li>
+              <li><span>Enchantments?</span> Enchant anything (weapons and armor)</li>
+            </ul>
+            <h4>Then they asked for…</h4>
+            <ul class="asks">
+              <li>Lower cooldown for the swing</li>
+              <li>More realistic</li>
+              <li>2.5D means 2D characters, 2D enemies, but a 3D world</li>
+              <li>Current sword attack is the special attack, we need a regular sword attack with lower damage</li>
+              <li>Bigger tile map</li>
+              <li>100 coins for the elemental sword which can zap</li>
+            </ul>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="wrap" aria-labelledby="starter">
+      <h2 id="starter">Where every session started</h2>
+      <div class="starter">
+        <a href="robo-dodge-starter/"><img src="assets/screenshots/robo-dodge-starter.jpg" alt="Robo Dodge: a little purple robot dodging falling asteroids" loading="lazy" /></a>
+        <div>
+          <strong>Robo Dodge</strong>
+          <p>Each class began with the same tiny game: a robot dodging falling asteroids. Everything above grew out of it, one idea at a time.</p>
+          <div class="buttons">
+            <a class="btn btn-primary" href="robo-dodge-starter/">▶ Play the starter</a>
+            <a class="btn btn-outline" href="https://github.com/danielbank/acp-field-day-2026/tree/c2495c5">See the code</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap">
+    <p class="note" id="edited"><strong>*</strong> Lightly edited to keep everything school-friendly. Otherwise, these are the students' own words.</p>
+    <p>The games were made live with <a href="https://claude.com/claude-code">Claude Code</a> during the AI Vibe Coding sessions.
+      The code is free and open: it's released into the public domain under <a href="https://github.com/danielbank/acp-field-day-2026/blob/main/LICENSE">the Unlicense</a>.
+      This is an independent recap made by a volunteer; it isn't an official Arizona College Preparatory publication.
+      Want something changed or removed? <a href="https://github.com/danielbank/acp-field-day-2026/issues">Open an issue</a>.</p>
+  </footer>
+</body>
 </html>

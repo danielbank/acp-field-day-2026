@@ -1,5 +1,6 @@
 node_modules/
 dist/
 dist-offline/
+_site/
 .DS_Store
 *.log
