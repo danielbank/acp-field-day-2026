@@ -34,15 +34,12 @@ export function updateGame(realDt) {
   }
 
   // move everything
-  updateHero(state.hero, dt, input, state.gravity);
+  if (updateHero(state.hero, dt, input)) bonk();   // scraped the ground: ouch!
   for (const f of state.fallers) updateFaller(f, dt);
   if (state.boss) updateBoss(state.boss, dt);
 
-  // bonks: a falling thing that touches the hero disappears and costs a life
-  state.fallers = state.fallers.filter((f) => {
-    if (circleHitsHero(f.x, f.y, f.r * 0.85, state.hero) && bonk()) return false;
-    return !isOffScreen(f);
-  });
+  // falling things are just scenery for now (dinos you can bonk come later)
+  state.fallers = state.fallers.filter((f) => !isOffScreen(f));
   if (state.boss && circleHitsHero(state.boss.x, state.boss.y, bossHitRadius(state.boss), state.hero)) bonk();
 
   if (state.banner && (state.banner.timeLeft -= realDt) <= 0) state.banner = null;

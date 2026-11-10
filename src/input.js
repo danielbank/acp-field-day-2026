@@ -1,12 +1,13 @@
 // input.js — keyboard and touch/mouse. Other files read `input` and call takeActions().
-// Holding keys sets input.left / input.right; one-time presses become "actions".
+// Holding keys sets input.left/right/up/down; one-time presses become "actions".
 
 import { CONFIG } from './config.js';
 
-export const input = { left: false, right: false, pointerX: null };
+export const input = { left: false, right: false, up: false, down: false, aimX: null, aimY: null };
 
 const actions = [];
-const MOVE_KEYS = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right' };
+const MOVE_KEYS = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right',
+                    ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down' };
 const ACTION_KEYS = { Space: 'start', Enter: 'start', KeyP: 'pause', KeyM: 'mute' };
 
 export function setupInput(canvas) {
@@ -19,26 +20,21 @@ export function setupInput(canvas) {
     if (MOVE_KEYS[e.code]) input[MOVE_KEYS[e.code]] = false;
   });
   window.addEventListener('blur', () => {   // switched to another window: let go of keys and pause
-    input.left = input.right = false;
+    input.left = input.right = input.up = input.down = false;
     actions.push('blur');
   });
 
-  // Touch or mouse: press and drag, and the hero follows your finger.
-  const toGameX = (e) => {
+  // Touch or mouse: the crosshair goes wherever you point.
+  const aimAt = (e) => {
     const rect = canvas.getBoundingClientRect();
-    return ((e.clientX - rect.left) / rect.width) * CONFIG.width;
+    input.aimX = ((e.clientX - rect.left) / rect.width) * CONFIG.width;
+    input.aimY = ((e.clientY - rect.top) / rect.height) * CONFIG.height;
   };
   canvas.addEventListener('pointerdown', (e) => {
-    canvas.setPointerCapture(e.pointerId);
-    input.pointerX = toGameX(e);
+    aimAt(e);
     actions.push('tap');
   });
-  canvas.addEventListener('pointermove', (e) => {
-    if (input.pointerX !== null) input.pointerX = toGameX(e);
-  });
-  const release = () => { input.pointerX = null; };
-  canvas.addEventListener('pointerup', release);
-  canvas.addEventListener('pointercancel', release);
+  canvas.addEventListener('pointermove', aimAt);
 }
 
 // Returns the actions since last frame and clears the list.

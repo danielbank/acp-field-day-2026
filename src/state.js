@@ -2,7 +2,7 @@
 // Screens: 'title' → 'playing' ⇄ 'paused' → 'gameover' → 'playing' …
 
 import { CONFIG } from './config.js';
-import { createHero } from './entities/hero.js';
+import { createHero, flap } from './entities/hero.js';
 import { unlockAudio, playSound, toggleMute } from './audio.js';
 
 const BEST_SCORE_KEY = 'robo-dodge-best';
@@ -57,6 +57,9 @@ export function handleAction(action) {
     resetRound();
     state.screen = 'playing';
     playSound('start');
+  } else if (screen === 'playing' && action === 'start') {
+    flap(state.hero);
+    playSound('flap');
   } else if (screen === 'playing' && (action === 'pause' || action === 'blur')) {
     state.screen = 'paused';
   } else if (screen === 'paused' && (action === 'pause' || action === 'start' || action === 'tap')) {

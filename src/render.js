@@ -4,7 +4,7 @@
 import { CONFIG } from './config.js';
 import { state } from './state.js';
 import { isMuted } from './audio.js';
-import { drawHero, drawRobot } from './entities/hero.js';
+import { drawRobot, drawGround, drawCockpit, horizonY } from './entities/hero.js';
 import { drawFaller } from './entities/faller.js';
 import { drawBoss } from './entities/boss.js';
 
@@ -44,9 +44,13 @@ export function drawBackground(ctx, seconds) {
 }
 
 export function drawWorld(ctx) {
+  drawGround(ctx, state.hero, state.time);
+  ctx.save();
+  ctx.translate(0, horizonY(state.hero) - CONFIG.height / 2);   // the world bobs as you fly up and down
   for (const f of state.fallers) drawFaller(ctx, f);
   if (state.boss) drawBoss(ctx, state.boss);
-  drawHero(ctx, state.hero, state.gravity);
+  ctx.restore();
+  drawCockpit(ctx, state.hero);
 }
 
 export function drawHUD(ctx) {

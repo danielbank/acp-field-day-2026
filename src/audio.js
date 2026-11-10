@@ -38,6 +38,7 @@ const SOUNDS = {
   flip:     () => { tone(200, 1200, 0.35, 'sine'); },
   boss:     () => { tone(90, 60, 0.8, 'sawtooth'); tone(120, 80, 0.8, 'square', 0.1); },
   bonus:    () => { tone(784, 1568, 0.3, 'triangle'); },
+  flap:     () => { tone(500, 850, 0.08, 'triangle'); },                     // "whoosh" up
 };
 
 export function playSound(name) {

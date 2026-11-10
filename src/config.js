@@ -14,11 +14,25 @@ export const CONFIG = {
     name: 'Bolt',                 // The hero's name (shown on the title screen)
     width: 72,                    // How wide the hero is
     height: 72,                   // How tall the hero is
-    speed: 560,                   // How fast the hero slides left and right
     bodyColor: '#9d4edd',         // Main robot color
     faceColor: '#e0e0ea',         // Robot face-screen color
     eyeColor: '#1a1026',          // Robot eye and smile color
     antennaColor: '#c0c0d0',      // Antenna color
+  },
+
+  // ---- The cockpit: you ride a flying skateboard, flappy-style ----
+  cockpit: {
+    gravity: 900,                 // How hard you sink (bigger = fall faster)
+    flapStrength: 380,            // How big a boost each SPACE press gives you
+    startHeight: 300,             // How high you start
+    maxHeight: 600,               // You can't fly higher than this
+    aimSpeed: 600,                // How fast the arrow keys move the crosshair
+    groundSpeed: 1.5,             // How fast the ground stripes zoom past
+    groundColor: '#2a1745',       // Ground color far below you
+    groundStripeColor: '#7b2cbf', // Color of the zooming ground stripes
+    boardColor: '#ff9f1c',        // Your skateboard's color
+    boardStripeColor: '#fff3e0',  // The racing stripe on your skateboard
+    crosshairColor: '#7dffb3',    // Aiming crosshair color
   },
 
   // ---- The things that fall ----
@@ -56,10 +70,10 @@ export const CONFIG = {
   },
   font: 'system-ui, "Segoe UI", Arial, sans-serif', // Built-in fonts only (no downloads)
   text: {
-    title: 'ROBO DODGE',                          // Big title on the start screen
-    subtitle: 'Help {hero} dodge the {things}!',  // {hero} and {things} get filled in automatically
+    title: 'SKY BOARD SHOWDOWN',                  // Big title on the start screen
+    subtitle: 'Help {hero} fly the skateboard!',   // {hero} and {things} get filled in automatically
     start: 'Press SPACE to start',                // Start instructions
-    controls: '← → or A D to move   ·   P pause   ·   M mute', // Controls hint
+    controls: 'SPACE flap   ·   mouse or arrows aim   ·   P pause   ·   M mute', // Controls hint
     paused: 'PAUSED',                             // Pause screen
     resume: 'Press P to keep playing',            // Pause screen hint
     gameOver: 'GAME OVER',                        // Game over title
