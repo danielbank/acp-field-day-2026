@@ -74,6 +74,21 @@ export const CONFIG = {
     lineColor: '#ffd1dc',         // Buzzing laser line color
   },
 
+  // ---- Boss fight: the Raccoon Mastermind in a giant ship ----
+  boss: {
+    dinosToSummon: 12,            // Bonk this many dinos and the boss shows up
+    health: 20,                   // Zaps needed to beat the first boss
+    healthGrowth: 10,             // Each time the boss comes back, it has this much more health
+    size: 120,                    // How big the ship is
+    sway: 0.6,                    // How fast it swoops side to side
+    summonEverySeconds: 2.2,      // How often it sends a dino at you
+    bonus: 500,                   // Points for beating the boss
+    shipColor: '#5a4b7a',         // Ship color
+    furColor: '#a3a3b3',          // Raccoon fur color
+    maskColor: '#2b2233',         // Raccoon mask and tail-stripe color
+    healthColor: '#ff4fd8',       // Health bar color
+  },
+
   // ---- Spawning & difficulty ramp ----
   spawnEverySeconds: 1.6,         // At level 1, a new dino appears this often (in seconds)
   fastestSpawnSeconds: 0.5,       // No matter the level, never spawn faster than this
@@ -104,6 +119,8 @@ export const CONFIG = {
     playAgain: 'Press SPACE to play again',       // Game over hint
     newBest: 'NEW BEST SCORE!',                   // Shown when you beat your best
     levelUp: 'LEVEL {level}!',                    // Banner when the level goes up
+    bossIncoming: 'RACCOON BOSS INCOMING!',       // Banner when the boss shows up
+    bossBeaten: 'BOSS BONKED! +{bonus}',          // Banner when you beat the boss
   },
 
   // ---- Sound ----
@@ -115,7 +132,6 @@ export const CONFIG = {
 export const TWISTS = {
   speedUpOverTime: false,         // The WHOLE game (hero too) slowly speeds up the longer you survive
   gravityFlips: false,            // Every 20 seconds gravity flips: hero jumps to the top and things fall UP
-  bossAppears: false,             // At score 100 a giant, slow UFO boss drifts across the screen
 };
 
 // Fine-tuning for the twists above (only matters when that twist is on)
@@ -123,10 +139,4 @@ export const TWIST_SETTINGS = {
   speedUpPerSecond: 0.02,         // speedUpOverTime: how much faster each second (0.02 = 2%)
   maxGameSpeed: 2.5,              // speedUpOverTime: never go faster than this (2.5 = 2.5x)
   flipEverySeconds: 20,           // gravityFlips: seconds between flips
-  bossAtScore: 100,               // bossAppears: score when the boss shows up
-  bossSize: 110,                  // bossAppears: how big the boss is (radius)
-  bossSpeed: 55,                  // bossAppears: how fast it drifts toward the hero
-  bossWiggle: 0.9,                // bossAppears: how fast it sways side to side
-  bossColor: '#7b2cbf',           // bossAppears: saucer color
-  bossBonus: 100,                 // bossAppears: points for surviving the boss
 };

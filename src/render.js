@@ -7,7 +7,7 @@ import { isMuted } from './audio.js';
 import { drawRobot, drawGround, drawCockpit, horizonY } from './entities/hero.js';
 import { drawDino } from './entities/dino.js';
 import { drawZapZone } from './entities/zapZone.js';
-import { drawBoss } from './entities/boss.js';
+import { drawBoss, drawBossHealth } from './entities/boss.js';
 import { drawLasers } from './lasers.js';
 
 // Fills in {hero}, {things} and {level} in text from config.js
@@ -49,9 +49,9 @@ export function drawWorld(ctx) {
   drawGround(ctx, state.hero, state.time);
   ctx.save();
   ctx.translate(0, horizonY(state.hero) - CONFIG.height / 2);   // the world bobs as you fly up and down
+  if (state.boss) drawBoss(ctx, state.boss);   // boss behind its dinos
   // far-away dinos first, so close ones are drawn on top
   for (const d of [...state.dinos].sort((a, b) => a.closeness - b.closeness)) drawDino(ctx, d);
-  if (state.boss) drawBoss(ctx, state.boss);
   ctx.restore();
   for (const z of state.zapZones) drawZapZone(ctx, z, state.hero);
   drawCockpit(ctx, state.hero);
@@ -67,6 +67,7 @@ export function drawHUD(ctx) {
     drawRobot(ctx, 30, 30);
     ctx.restore();
   }
+  if (state.boss) drawBossHealth(ctx, state.boss);
   if (isMuted()) text(ctx, 'MUTED (M)', CONFIG.width - 24, CONFIG.height - 20, 18, CONFIG.colors.silver, 'right');
   if (state.banner) text(ctx, state.banner.text, CONFIG.width / 2, CONFIG.height / 2, 64, CONFIG.colors.warning);
 }

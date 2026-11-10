@@ -25,7 +25,8 @@ export function resetRound() {
     pops: [],            // star puffs from bonked things
     laserCooldown: 0,
     boss: null,
-    bossDone: false,
+    bossesBeaten: 0,
+    nextBossAt: CONFIG.boss.dinosToSummon,   // boss shows up when dinosBonked reaches this
     score: 0,
     lives: CONFIG.lives,
     level: 1,

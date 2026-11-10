@@ -1,10 +1,9 @@
-// twists.js — the three optional TWISTS from config.js.
+// twists.js — the optional TWISTS from config.js.
 // Each block only runs when its switch in TWISTS is true.
 
 import { TWISTS, TWIST_SETTINGS as S } from './config.js';
 import { state, showBanner } from './state.js';
 import { playSound } from './audio.js';
-import { createBoss, isBossGone } from './entities/boss.js';
 
 export function updateTwists(dt) {
   // speedUpOverTime: everything (including the hero) runs a little faster every second
@@ -21,22 +20,6 @@ export function updateTwists(dt) {
       state.dinos = [];            // clear the screen so the flip is fair
       showBanner('GRAVITY FLIP!');
       playSound('flip');
-    }
-  }
-
-  // bossAppears: one giant slow UFO per game, starting at a certain score
-  if (TWISTS.bossAppears) {
-    if (!state.boss && !state.bossDone && state.score >= S.bossAtScore) {
-      state.boss = createBoss(state.gravity);
-      showBanner('BOSS INCOMING!');
-      playSound('boss');
-    }
-    if (state.boss && isBossGone(state.boss)) {
-      state.boss = null;
-      state.bossDone = true;
-      state.score += S.bossBonus;
-      showBanner(`BOSS DODGED! +${S.bossBonus}`);
-      playSound('bonus');
     }
   }
 }

@@ -8,8 +8,7 @@ import { playSound } from './audio.js';
 import { updateHero } from './entities/hero.js';
 import { spawnDino, updateDino } from './entities/dino.js';
 import { spawnZapZone, updateZapZone } from './entities/zapZone.js';
-import { updateBoss, bossHitRadius } from './entities/boss.js';
-import { circleHitsHero } from './collision.js';
+import { createBoss, updateBoss } from './entities/boss.js';
 import { updateTwists } from './twists.js';
 import { updateLasers } from './lasers.js';
 
@@ -27,9 +26,16 @@ export function updateGame(realDt) {
     playSound('levelUp');
   }
 
-  // send in a new dino
+  // the raccoon boss shows up after enough dinos get bonked
+  if (!state.boss && state.dinosBonked >= state.nextBossAt) {
+    state.boss = createBoss(state.bossesBeaten);
+    showBanner(CONFIG.text.bossIncoming);
+    playSound('boss');
+  }
+
+  // send in a new dino (while the boss is here, it sends them instead)
   state.spawnTimer -= dt;
-  if (state.spawnTimer <= 0) {
+  if (state.spawnTimer <= 0 && !state.boss) {
     state.dinos.push(spawnDino(state.level));
     state.spawnTimer = Math.max(CONFIG.fastestSpawnSeconds,
       CONFIG.spawnEverySeconds - (state.level - 1) * CONFIG.spawnFasterPerLevel);
@@ -45,7 +51,9 @@ export function updateGame(realDt) {
   // move everything
   if (updateHero(state.hero, dt, input)) bonk();   // scraped the ground: ouch!
   updateLasers(dt);
-  if (state.boss) updateBoss(state.boss, dt);
+  if (state.boss && updateBoss(state.boss, dt)) {
+    state.dinos.push(spawnDino(state.level, state.boss.x, state.boss.y + 60));
+  }
 
   // a laser wall that reaches you: zap if you're inside it, points if you dodged it
   state.zapZones = state.zapZones.filter((z) => {
@@ -61,7 +69,6 @@ export function updateGame(realDt) {
     bonk();
     return false;
   });
-  if (state.boss && circleHitsHero(state.boss.x, state.boss.y, bossHitRadius(state.boss), state.hero)) bonk();
 
   if (state.banner && (state.banner.timeLeft -= realDt) <= 0) state.banner = null;
 }

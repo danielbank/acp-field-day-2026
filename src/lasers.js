@@ -2,10 +2,11 @@
 // Lasers hit instantly where you aim; whatever is there gets bonked into a puff of stars.
 
 import { CONFIG } from './config.js';
-import { state } from './state.js';
+import { state, showBanner } from './state.js';
 import { playSound } from './audio.js';
 import { horizonY } from './entities/hero.js';
 import { dinoRadius } from './entities/dino.js';
+import { bossIsAt } from './entities/boss.js';
 
 export function fireLaser() {
   const L = CONFIG.laser;
@@ -20,7 +21,7 @@ export function fireLaser() {
   const shift = horizonY(hero) - CONFIG.height / 2;
   const hits = state.dinos.filter((d) =>
     Math.hypot(d.x - hero.aimX, d.y + shift - hero.aimY) < dinoRadius(d) + L.aimForgiveness);
-  if (hits.length === 0) return;
+  if (hits.length === 0) return zapBoss(shift);
   const target = hits.reduce((a, b) => (b.closeness > a.closeness ? b : a));
   target.hp -= 1;
   target.flash = 0.1;
@@ -30,6 +31,23 @@ export function fireLaser() {
   state.dinosBonked += 1;
   state.pops.push({ x: target.x, y: target.y + shift, timeLeft: 0.5 });
   playSound('zapBonk');
+}
+
+// No dino in the way? Maybe we hit the boss!
+function zapBoss(shift) {
+  const boss = state.boss;
+  if (!boss || !bossIsAt(boss, state.hero.aimX, state.hero.aimY - shift)) return;
+  boss.hp -= 1;
+  boss.flash = 0.1;
+  if (boss.hp > 0) return playSound('hit');
+  // boss beaten: big star burst, bonus points, and it'll come back tougher later
+  for (const dx of [-80, 0, 80]) state.pops.push({ x: boss.x + dx, y: boss.y + shift, timeLeft: 0.5 });
+  state.score += CONFIG.boss.bonus;
+  state.bossesBeaten += 1;
+  state.nextBossAt = state.dinosBonked + CONFIG.boss.dinosToSummon;
+  state.boss = null;
+  showBanner(CONFIG.text.bossBeaten.replace('{bonus}', CONFIG.boss.bonus));
+  playSound('bonus');
 }
 
 export function updateLasers(dt) {
