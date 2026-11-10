@@ -1,4 +1,4 @@
-// lasers.js — zap! Click (or F) fires twin lasers from the skateboard at the crosshair.
+// lasers.js — zap! Each press of F (or a click) auto-fires a burst of twin lasers at the crosshair.
 // Lasers hit instantly where you aim; whatever is there gets bonked into a puff of stars.
 
 import { CONFIG } from './config.js';
@@ -8,10 +8,14 @@ import { horizonY } from './entities/hero.js';
 import { dinoRadius } from './entities/dino.js';
 import { bossIsAt } from './entities/boss.js';
 
+// F or click: queue up a burst of shots that fire on their own.
 export function fireLaser() {
+  state.burstLeft = CONFIG.laser.shotsPerPress;
+}
+
+function shootOnce() {
   const L = CONFIG.laser;
   const hero = state.hero;
-  if (state.laserCooldown > 0) return;
   state.laserCooldown = L.cooldown;
   state.lasers.push({ x: hero.aimX, y: hero.aimY, timeLeft: L.beamSeconds });
   playSound('laser');
@@ -52,6 +56,10 @@ function zapBoss(shift) {
 
 export function updateLasers(dt) {
   state.laserCooldown = Math.max(0, state.laserCooldown - dt);
+  if (state.burstLeft > 0 && state.laserCooldown === 0) {   // autoshoot the rest of the burst
+    state.burstLeft -= 1;
+    shootOnce();
+  }
   for (const b of state.lasers) b.timeLeft -= dt;
   for (const p of state.pops) p.timeLeft -= dt;
   state.lasers = state.lasers.filter((b) => b.timeLeft > 0);

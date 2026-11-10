@@ -24,6 +24,7 @@ export function resetRound() {
     lasers: [],          // laser beams on screen right now
     pops: [],            // star puffs from bonked things
     laserCooldown: 0,
+    burstLeft: 0,        // autoshoot: shots still waiting to fire
     boss: null,
     bossesBeaten: 0,
     nextBossAt: CONFIG.boss.dinosToSummon,   // boss shows up when dinosBonked reaches this

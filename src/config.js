@@ -35,11 +35,12 @@ export const CONFIG = {
     crosshairColor: '#7dffb3',    // Aiming crosshair color
   },
 
-  // ---- Lasers (click or F to fire) ----
+  // ---- Lasers (press F or click to auto-fire a burst) ----
   laser: {
     color: '#ff4fd8',             // Laser beam color
     popColor: '#ffe066',          // Color of the stars when something gets bonked
-    cooldown: 0.15,               // Seconds between shots (smaller = faster firing)
+    shotsPerPress: 5,             // Each press of F (or click) auto-fires this many shots
+    cooldown: 0.12,               // Seconds between shots (smaller = faster firing)
     beamSeconds: 0.1,             // How long each beam stays on screen
     aimForgiveness: 20,           // Extra pixels around targets that still count as a hit
   },
