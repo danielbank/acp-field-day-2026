@@ -19,6 +19,8 @@ export function resetRound() {
     hero: createHero(),
     dinos: [],
     dinosBonked: 0,
+    zapZones: [],        // laser walls flying at you
+    zapTimer: CONFIG.zapZone.firstAfterSeconds,
     lasers: [],          // laser beams on screen right now
     pops: [],            // star puffs from bonked things
     laserCooldown: 0,

@@ -7,6 +7,7 @@ import { input } from './input.js';
 import { playSound } from './audio.js';
 import { updateHero } from './entities/hero.js';
 import { spawnDino, updateDino } from './entities/dino.js';
+import { spawnZapZone, updateZapZone } from './entities/zapZone.js';
 import { updateBoss, bossHitRadius } from './entities/boss.js';
 import { circleHitsHero } from './collision.js';
 import { updateTwists } from './twists.js';
@@ -34,10 +35,25 @@ export function updateGame(realDt) {
       CONFIG.spawnEverySeconds - (state.level - 1) * CONFIG.spawnFasterPerLevel);
   }
 
+  // send in a zap zone (laser wall)
+  state.zapTimer -= dt;
+  if (state.zapTimer <= 0) {
+    state.zapZones.push(spawnZapZone());
+    state.zapTimer = CONFIG.zapZone.everySeconds;
+  }
+
   // move everything
   if (updateHero(state.hero, dt, input)) bonk();   // scraped the ground: ouch!
   updateLasers(dt);
   if (state.boss) updateBoss(state.boss, dt);
+
+  // a laser wall that reaches you: zap if you're inside it, points if you dodged it
+  state.zapZones = state.zapZones.filter((z) => {
+    const result = updateZapZone(z, dt, state.hero);
+    if (result === 'hit') bonk();
+    if (result === 'passed') { state.score += CONFIG.zapZone.passPoints; playSound('bonus'); }
+    return result === null;
+  });
 
   // a dino that reaches you bonks you and flies off
   state.dinos = state.dinos.filter((d) => {

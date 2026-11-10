@@ -6,6 +6,7 @@ import { state } from './state.js';
 import { isMuted } from './audio.js';
 import { drawRobot, drawGround, drawCockpit, horizonY } from './entities/hero.js';
 import { drawDino } from './entities/dino.js';
+import { drawZapZone } from './entities/zapZone.js';
 import { drawBoss } from './entities/boss.js';
 import { drawLasers } from './lasers.js';
 
@@ -52,6 +53,7 @@ export function drawWorld(ctx) {
   for (const d of [...state.dinos].sort((a, b) => a.closeness - b.closeness)) drawDino(ctx, d);
   if (state.boss) drawBoss(ctx, state.boss);
   ctx.restore();
+  for (const z of state.zapZones) drawZapZone(ctx, z, state.hero);
   drawCockpit(ctx, state.hero);
   drawLasers(ctx);
 }

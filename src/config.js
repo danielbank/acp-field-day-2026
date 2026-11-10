@@ -62,6 +62,18 @@ export const CONFIG = {
     sneaky: { color: '#ff6fb5', size: 55, hp: 1, points: 60, speed: 1.1 },  // fades in and out
   },
 
+  // ---- Zap zones: laser walls at random heights. Flap over or under them! ----
+  zapZone: {
+    firstAfterSeconds: 6,         // The first wall shows up after this many seconds
+    everySeconds: 7,              // Then a new wall comes this often
+    arriveSeconds: 3,             // How long a wall takes to zoom all the way to you
+    minThickness: 100,            // Thinnest wall (in heights)
+    maxThickness: 180,            // Thickest wall
+    passPoints: 20,               // Points for making it past a wall
+    color: '#ff3355',             // Wall glow color
+    lineColor: '#ffd1dc',         // Buzzing laser line color
+  },
+
   // ---- Spawning & difficulty ramp ----
   spawnEverySeconds: 1.6,         // At level 1, a new dino appears this often (in seconds)
   fastestSpawnSeconds: 0.5,       // No matter the level, never spawn faster than this
