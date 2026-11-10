@@ -1,60 +1,43 @@
-// game.js — the rules of one round: score, levels, spawning, moving and bonks.
-// Called every frame while the screen is 'playing'.
+// game.js — the rules of one round, run every frame while the screen is 'playing'.
+// Order: traps on the floor → you → waves → mobs → flying things → pickups → effects.
 
 import { CONFIG } from './config.js';
-import { state, showBanner, endRound } from './state.js';
-import { input } from './input.js';
-import { playSound } from './audio.js';
+import { state, endRound } from './state.js';
 import { updateHero } from './entities/hero.js';
-import { spawnFaller, updateFaller, isOffScreen } from './entities/faller.js';
-import { updateBoss, bossHitRadius } from './entities/boss.js';
-import { circleHitsHero } from './collision.js';
-import { updateTwists } from './twists.js';
+import { updateMob, separateMobs } from './entities/mobs.js';
+import { updateProjectiles } from './entities/projectiles.js';
+import { updateHazards, updateTraps } from './entities/traps.js';
+import { updatePickups } from './entities/pickups.js';
+import { heroAtDoor, shopDoor } from './entities/shop.js';
+import { updateWaves } from './waves.js';
+import { updateEffects } from './effects.js';
+import { openShop } from './shopMenu.js';
+import { dist } from './view.js';
 
-export function updateGame(realDt) {
-  updateTwists(realDt);
-  const dt = realDt * state.gameSpeed;
-
-  // score and level
+export function updateGame(dt) {
   state.time += dt;
-  state.score += CONFIG.scorePerSecond * dt;
-  const newLevel = 1 + Math.floor(state.time / CONFIG.secondsPerLevel);
-  if (newLevel > state.level) {
-    state.level = newLevel;
-    showBanner(CONFIG.text.levelUp.replace('{level}', newLevel));
-    playSound('levelUp');
-  }
-
-  // spawn new falling things
-  state.spawnTimer -= dt;
-  if (state.spawnTimer <= 0) {
-    state.fallers.push(spawnFaller(state.level, state.gravity));
-    state.spawnTimer = Math.max(CONFIG.fastestSpawnSeconds,
-      CONFIG.spawnEverySeconds - (state.level - 1) * CONFIG.spawnFasterPerLevel);
-  }
-
-  // move everything
-  updateHero(state.hero, dt, input, state.gravity);
-  for (const f of state.fallers) updateFaller(f, dt);
-  if (state.boss) updateBoss(state.boss, dt);
-
-  // bonks: a falling thing that touches the hero disappears and costs a life
-  state.fallers = state.fallers.filter((f) => {
-    if (circleHitsHero(f.x, f.y, f.r * 0.85, state.hero) && bonk()) return false;
-    return !isOffScreen(f);
-  });
-  if (state.boss && circleHitsHero(state.boss.x, state.boss.y, bossHitRadius(state.boss), state.hero)) bonk();
-
-  if (state.banner && (state.banner.timeLeft -= realDt) <= 0) state.banner = null;
+  updateHazards(dt);
+  updateHero(state.hero, dt);
+  updateWaves(dt);
+  for (const m of [...state.mobs]) if (!m.dead) updateMob(m, dt);
+  separateMobs();
+  updateProjectiles(dt);
+  updateTraps(dt);
+  updatePickups(dt);
+  updateEffects(dt);
+  state.mobs = state.mobs.filter((m) => !m.dead);
+  if (state.banner && (state.banner.timeLeft -= dt) <= 0) state.banner = null;
+  state.shake = Math.max(0, state.shake - dt);
+  if (state.hero.hp <= 0 && state.screen === 'playing') return endRound();
+  checkShopDoor();
 }
 
-// Returns true if the hit counted (the hero wasn't blinking).
-function bonk() {
-  const hero = state.hero;
-  if (hero.hurtTimer > 0 || state.screen !== 'playing') return false;
-  state.lives -= 1;
-  hero.hurtTimer = CONFIG.invincibleSeconds;
-  playSound('hit');
-  if (state.lives <= 0) endRound();
-  return true;
+// Walk into the door between waves to go shopping.
+function checkShopDoor() {
+  if (state.screen !== 'playing') return;
+  if (dist(state.hero, shopDoor) > CONFIG.shop.doorRadius + 30) state.shopArmed = true;
+  if (state.waveState === 'break' && state.shopArmed && heroAtDoor(state.hero)) {
+    state.shopArmed = false;
+    openShop();
+  }
 }

@@ -1,11 +1,14 @@
 // main.js — sets up the canvas and runs the game loop (about 60 frames per second).
-// Each frame: handle key presses → update the game → draw everything.
+// Each frame: handle key presses → update the game → draw the current screen.
 
 import { CONFIG } from './config.js';
 import { state, handleAction } from './state.js';
 import { setupInput, takeActions } from './input.js';
 import { updateGame } from './game.js';
-import { drawBackground, drawWorld, drawHUD, drawTitle, drawPaused, drawGameOver } from './render.js';
+import { drawBackground, drawWorld, drawHUD } from './render.js';
+import { drawTitle, drawPaused, drawGameOver, drawVictory } from './screens.js';
+import { drawCustomize } from './customize.js';
+import { drawShopMenu } from './shopMenu.js';
 
 const MAX_DT = 1 / 20;   // if the computer hiccups, don't let things teleport
 
@@ -23,13 +26,18 @@ function fitCanvas() {
   ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
 }
 
-function draw(seconds) {
-  drawBackground(ctx, seconds);
-  if (state.screen === 'title') return drawTitle(ctx);
-  drawWorld(ctx);
+const OVERLAYS = { paused: drawPaused, gameover: drawGameOver, victory: drawVictory, shop: drawShopMenu };
+
+function draw(t) {
+  drawBackground(ctx);
+  if (state.screen === 'title') return drawTitle(ctx, t);
+  if (state.screen === 'customize') return drawCustomize(ctx, t);
+  ctx.save();
+  if (state.shake > 0) ctx.translate((Math.random() - 0.5) * 16 * state.shake, (Math.random() - 0.5) * 16 * state.shake);
+  drawWorld(ctx, t);
+  ctx.restore();
   drawHUD(ctx);
-  if (state.screen === 'paused') drawPaused(ctx);
-  if (state.screen === 'gameover') drawGameOver(ctx);
+  OVERLAYS[state.screen]?.(ctx, t);
 }
 
 let lastTime = performance.now();
