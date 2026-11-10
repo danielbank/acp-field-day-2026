@@ -1,5 +1,5 @@
 # pages.yml — builds the gallery site and publishes it to GitHub Pages.
-# The gallery (index.html, assets/, docs/) comes from main; each game is built from its own branch.
+# The gallery (index.html, assets/, docs/) comes from main; each game is built from its own git tag.
 name: Publish gallery to GitHub Pages
 
 on:
@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0          # we need every game branch
+          fetch-depth: 0          # we need every game's tag
       - uses: actions/setup-node@v4
         with:
           node-version: 22

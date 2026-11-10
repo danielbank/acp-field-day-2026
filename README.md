@@ -32,14 +32,15 @@ A few prompts were lightly edited to keep them school-friendly.
 | `index.html` | The gallery page |
 | `assets/` | Game screenshots |
 | `docs/` | The presentation, as PDF and PowerPoint |
-| `build-site.sh` | Builds the gallery plus every game branch into one folder (`_site/`) |
+| `build-site.sh` | Builds the gallery plus every game (from its tag) into one folder (`_site/`) |
 | `.github/workflows/pages.yml` | Runs `build-site.sh` and publishes to GitHub Pages on every push to `main` |
 
-Each game lives on its own branch. They're plain JavaScript + `<canvas>` + [Vite](https://vite.dev), with no runtime
-dependencies and no external assets. To run one locally:
+Each game is saved as a git tag (`flappy-fps-dinosaurs`, `robo-racer`, `spud-quest`, `robo-knight`), with the
+full history of how the class built it. They're plain JavaScript + `<canvas>` + [Vite](https://vite.dev), with no
+runtime dependencies and no external assets. To run one locally:
 
 ```sh
-git switch robo-knight   # or flappy-fps-dinosaurs, robo-racer, spud-quest
+git switch --detach robo-knight   # or flappy-fps-dinosaurs, robo-racer, spud-quest
 npm install
 npm run dev
 ```

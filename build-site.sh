@@ -7,12 +7,12 @@ OUT="$(cd "$(dirname "$0")" && pwd)/${1:-_site}"
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 WORK="$(mktemp -d)"
 
-# folder on the site  →  git ref to build it from
+# folder on the site  →  git tag (or commit) to build it from
 GAMES=(
-  "flappy-fps-dinosaurs  origin/flappy-fps-dinosaurs"
-  "robo-racer            origin/robo-racer"
-  "spud-quest            origin/spud-quest"
-  "robo-knight           origin/robo-knight"
+  "flappy-fps-dinosaurs  refs/tags/flappy-fps-dinosaurs"
+  "robo-racer            refs/tags/robo-racer"
+  "spud-quest            refs/tags/spud-quest"
+  "robo-knight           refs/tags/robo-knight"
   "robo-dodge-starter    c2495c5"
 )
 
