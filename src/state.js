@@ -17,7 +17,8 @@ export const state = {
 export function resetRound() {
   Object.assign(state, {
     hero: createHero(),
-    fallers: [],
+    dinos: [],
+    dinosBonked: 0,
     lasers: [],          // laser beams on screen right now
     pops: [],            // star puffs from bonked things
     laserCooldown: 0,

@@ -6,7 +6,7 @@ import { state, showBanner, endRound } from './state.js';
 import { input } from './input.js';
 import { playSound } from './audio.js';
 import { updateHero } from './entities/hero.js';
-import { spawnFaller, updateFaller, isOffScreen } from './entities/faller.js';
+import { spawnDino, updateDino } from './entities/dino.js';
 import { updateBoss, bossHitRadius } from './entities/boss.js';
 import { circleHitsHero } from './collision.js';
 import { updateTwists } from './twists.js';
@@ -26,22 +26,25 @@ export function updateGame(realDt) {
     playSound('levelUp');
   }
 
-  // spawn new falling things
+  // send in a new dino
   state.spawnTimer -= dt;
   if (state.spawnTimer <= 0) {
-    state.fallers.push(spawnFaller(state.level, state.gravity));
+    state.dinos.push(spawnDino(state.level));
     state.spawnTimer = Math.max(CONFIG.fastestSpawnSeconds,
       CONFIG.spawnEverySeconds - (state.level - 1) * CONFIG.spawnFasterPerLevel);
   }
 
   // move everything
   if (updateHero(state.hero, dt, input)) bonk();   // scraped the ground: ouch!
-  for (const f of state.fallers) updateFaller(f, dt);
   updateLasers(dt);
   if (state.boss) updateBoss(state.boss, dt);
 
-  // falling things are just scenery for now (dinos you can bonk come later)
-  state.fallers = state.fallers.filter((f) => !isOffScreen(f));
+  // a dino that reaches you bonks you and flies off
+  state.dinos = state.dinos.filter((d) => {
+    if (!updateDino(d, dt)) return true;
+    bonk();
+    return false;
+  });
   if (state.boss && circleHitsHero(state.boss.x, state.boss.y, bossHitRadius(state.boss), state.hero)) bonk();
 
   if (state.banner && (state.banner.timeLeft -= realDt) <= 0) state.banner = null;

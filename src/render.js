@@ -5,12 +5,12 @@ import { CONFIG } from './config.js';
 import { state } from './state.js';
 import { isMuted } from './audio.js';
 import { drawRobot, drawGround, drawCockpit, horizonY } from './entities/hero.js';
-import { drawFaller } from './entities/faller.js';
+import { drawDino } from './entities/dino.js';
 import { drawBoss } from './entities/boss.js';
 import { drawLasers } from './lasers.js';
 
 // Fills in {hero}, {things} and {level} in text from config.js
-const fill = (str) => str.replace('{hero}', CONFIG.hero.name).replace('{things}', CONFIG.faller.name)
+const fill = (str) => str.replace('{hero}', CONFIG.hero.name).replace('{things}', CONFIG.dino.name)
   .replace('{level}', state.level);
 
 // Star positions are picked once so they don't jump around.
@@ -48,7 +48,8 @@ export function drawWorld(ctx) {
   drawGround(ctx, state.hero, state.time);
   ctx.save();
   ctx.translate(0, horizonY(state.hero) - CONFIG.height / 2);   // the world bobs as you fly up and down
-  for (const f of state.fallers) drawFaller(ctx, f);
+  // far-away dinos first, so close ones are drawn on top
+  for (const d of [...state.dinos].sort((a, b) => a.closeness - b.closeness)) drawDino(ctx, d);
   if (state.boss) drawBoss(ctx, state.boss);
   ctx.restore();
   drawCockpit(ctx, state.hero);

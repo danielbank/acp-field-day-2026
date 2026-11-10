@@ -5,6 +5,7 @@ import { CONFIG } from './config.js';
 import { state } from './state.js';
 import { playSound } from './audio.js';
 import { horizonY } from './entities/hero.js';
+import { dinoRadius } from './entities/dino.js';
 
 export function fireLaser() {
   const L = CONFIG.laser;
@@ -14,13 +15,19 @@ export function fireLaser() {
   state.lasers.push({ x: hero.aimX, y: hero.aimY, timeLeft: L.beamSeconds });
   playSound('laser');
 
-  // did we hit anything? (things in the world bob with the horizon, so shift them the same way)
+  // did we hit a dino? (the world bobs with the horizon, so shift them the same way)
+  // If two overlap, the closest one gets zapped.
   const shift = horizonY(hero) - CONFIG.height / 2;
-  const target = state.fallers.find((f) =>
-    Math.hypot(f.x - hero.aimX, f.y + shift - hero.aimY) < f.r + L.aimForgiveness);
-  if (!target) return;
-  state.fallers = state.fallers.filter((f) => f !== target);
-  state.score += L.pointsPerBonk;
+  const hits = state.dinos.filter((d) =>
+    Math.hypot(d.x - hero.aimX, d.y + shift - hero.aimY) < dinoRadius(d) + L.aimForgiveness);
+  if (hits.length === 0) return;
+  const target = hits.reduce((a, b) => (b.closeness > a.closeness ? b : a));
+  target.hp -= 1;
+  target.flash = 0.1;
+  if (target.hp > 0) return playSound('hit');
+  state.dinos = state.dinos.filter((d) => d !== target);
+  state.score += target.type.points;
+  state.dinosBonked += 1;
   state.pops.push({ x: target.x, y: target.y + shift, timeLeft: 0.5 });
   playSound('zapBonk');
 }

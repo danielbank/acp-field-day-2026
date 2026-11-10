@@ -42,29 +42,31 @@ export const CONFIG = {
     cooldown: 0.15,               // Seconds between shots (smaller = faster firing)
     beamSeconds: 0.1,             // How long each beam stays on screen
     aimForgiveness: 20,           // Extra pixels around targets that still count as a hit
-    pointsPerBonk: 25,            // Points for bonking something with a laser
   },
 
-  // ---- The things that fall ----
-  faller: {
-    name: 'asteroids',            // What we call the falling things (used in on-screen text)
-    look: 'asteroid',             // How they're drawn: 'asteroid' or 'ball'
-    color: '#a9a9b8',             // Main color
-    outlineColor: '#e0aaff',      // Outline color
-    hasFace: true,                // Give them little friendly eyes? true or false
-    minSize: 26,                  // Smallest size (radius in pixels)
-    maxSize: 50,                  // Biggest size (radius in pixels)
-    startSpeed: 200,              // How fast they fall at level 1
-    maxSpeed: 650,                // They never fall faster than this
-    spin: 2,                      // How fast they spin (0 = no spinning)
+  // ---- Dinos (they ride mini flying skateboards toward you) ----
+  dino: {
+    name: 'dinos',                // What we call them (used in on-screen text)
+    arriveSeconds: 4,             // How many seconds a normal dino takes to reach you at level 1
+    fasterPerLevel: 0.12,         // Each level, dinos fly this much faster (0.12 = 12%)
+    skateboardColor: '#ffd23f',   // Color of the dinos' mini skateboards
+    spikeColor: '#ffb3de',        // Color of the spikes on their backs
+  },
+
+  // ---- The 5 dino types! size = how big up close, hp = zaps to bonk, speed = 1 is normal ----
+  dinoTypes: {
+    zigzag: { color: '#6bd66b', size: 60, hp: 1, points: 25, speed: 1 },    // wiggles side to side
+    swoop:  { color: '#b07cff', size: 60, hp: 1, points: 30, speed: 1 },    // swoops up and down
+    speedy: { color: '#ff9f43', size: 45, hp: 1, points: 50, speed: 1.8 },  // small and FAST
+    tank:   { color: '#4fa3ff', size: 95, hp: 3, points: 75, speed: 0.6 },  // big, slow, takes 3 zaps
+    sneaky: { color: '#ff6fb5', size: 55, hp: 1, points: 60, speed: 1.1 },  // fades in and out
   },
 
   // ---- Spawning & difficulty ramp ----
-  spawnEverySeconds: 0.9,         // At level 1, a new one appears this often (in seconds)
-  fastestSpawnSeconds: 0.22,      // No matter the level, never spawn faster than this
+  spawnEverySeconds: 1.6,         // At level 1, a new dino appears this often (in seconds)
+  fastestSpawnSeconds: 0.5,       // No matter the level, never spawn faster than this
   secondsPerLevel: 15,            // Survive this many seconds to reach the next level
-  speedUpPerLevel: 35,            // Each level, things fall this much faster
-  spawnFasterPerLevel: 0.08,      // Each level, the wait between spawns shrinks by this many seconds
+  spawnFasterPerLevel: 0.1,       // Each level, the wait between spawns shrinks by this many seconds
 
   // ---- Lives & score ----
   lives: 3,                       // How many bonks you can take

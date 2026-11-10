@@ -18,7 +18,7 @@ export function updateTwists(dt) {
     if (state.flipTimer >= S.flipEverySeconds) {
       state.flipTimer = 0;
       state.gravity *= -1;
-      state.fallers = [];          // clear the screen so the flip is fair
+      state.dinos = [];            // clear the screen so the flip is fair
       showBanner('GRAVITY FLIP!');
       playSound('flip');
     }
