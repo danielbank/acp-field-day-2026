@@ -38,6 +38,15 @@ const SOUNDS = {
   flip:     () => { tone(200, 1200, 0.35, 'sine'); },
   boss:     () => { tone(90, 60, 0.8, 'sawtooth'); tone(120, 80, 0.8, 'square', 0.1); },
   bonus:    () => { tone(784, 1568, 0.3, 'triangle'); },
+  coin:     () => { tone(988, 988, 0.05, 'square'); tone(1319, 1319, 0.12, 'square', 0.05); },
+  shoot:    () => { tone(600, 300, 0.07, 'triangle'); },
+  pop:      () => { tone(500, 1400, 0.12, 'square'); },
+  correct:  () => { tone(660, 660, 0.08, 'triangle'); tone(990, 990, 0.15, 'triangle', 0.08); },
+  wrong:    () => { tone(200, 150, 0.2, 'sawtooth'); },
+  mash:     () => { tone(220, 330, 0.04, 'square'); },
+  beat:     () => { tone(80, 50, 0.15, 'sine'); },
+  megaBonk: () => { tone(150, 40, 0.5, 'sawtooth'); tone(900, 200, 0.3, 'square', 0.05); },
+  fry:      () => { tone(300, 1800, 0.5, 'sawtooth'); tone(450, 2400, 0.5, 'square', 0.1); },
 };
 
 export function playSound(name) {
