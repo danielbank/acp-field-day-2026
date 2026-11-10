@@ -4,7 +4,7 @@
 import { CONFIG } from './config.js';
 import { state, handleAction } from './state.js';
 import { setupInput, takeActions } from './input.js';
-import { updateGame } from './game.js';
+import { updateGame, gameAction } from './game.js';
 import { drawBackground, drawWorld, drawHUD, drawTitle, drawPaused, drawGameOver } from './render.js';
 
 const MAX_DT = 1 / 20;   // if the computer hiccups, don't let things teleport
@@ -25,8 +25,8 @@ function fitCanvas() {
 
 function draw(seconds) {
   drawBackground(ctx, seconds);
+  drawWorld(ctx, seconds);
   if (state.screen === 'title') return drawTitle(ctx);
-  drawWorld(ctx);
   drawHUD(ctx);
   if (state.screen === 'paused') drawPaused(ctx);
   if (state.screen === 'gameover') drawGameOver(ctx);
@@ -36,8 +36,12 @@ let lastTime = performance.now();
 function frame(now) {
   const dt = Math.min((now - lastTime) / 1000, MAX_DT);
   lastTime = now;
-  for (const action of takeActions()) handleAction(action);
+  for (const action of takeActions()) {
+    if (state.screen === 'playing' && gameAction(action)) continue;   // jump, zap, turbo…
+    handleAction(action);                                            // start, pause, menus…
+  }
   if (state.screen === 'playing') updateGame(dt);
+  if (state.screen === 'title') state.car.z += 4000 * dt;          // cruise along behind the title
   draw(now / 1000);
   requestAnimationFrame(frame);
 }

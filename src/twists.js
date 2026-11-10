@@ -1,42 +1,21 @@
-// twists.js — the three optional TWISTS from config.js.
-// Each block only runs when its switch in TWISTS is true.
+// twists.js — the optional TWISTS from config.js. Each helper only changes things when its switch is true.
+// Other files ask these helpers instead of checking TWISTS themselves.
 
-import { TWISTS, TWIST_SETTINGS as S } from './config.js';
-import { state, showBanner } from './state.js';
-import { playSound } from './audio.js';
-import { createBoss, isBossGone } from './entities/boss.js';
+import { TWISTS, TWIST_SETTINGS } from './config.js';
 
-export function updateTwists(dt) {
-  // speedUpOverTime: everything (including the hero) runs a little faster every second
-  if (TWISTS.speedUpOverTime) {
-    state.gameSpeed = Math.min(S.maxGameSpeed, 1 + state.time * S.speedUpPerSecond);
-  }
+// rainbowRoad: a color for road chunk n, or null to use the normal road color.
+export function rainbowColor(n, seconds) {
+  if (!TWISTS.rainbowRoad) return null;
+  const hue = (n * 4 + seconds * 90 * TWIST_SETTINGS.rainbowSpeed) % 360;
+  return `hsl(${hue}, 70%, 32%)`;
+}
 
-  // gravityFlips: every few seconds the hero jumps to the other side and things fall the other way
-  if (TWISTS.gravityFlips) {
-    state.flipTimer += dt;
-    if (state.flipTimer >= S.flipEverySeconds) {
-      state.flipTimer = 0;
-      state.gravity *= -1;
-      state.fallers = [];          // clear the screen so the flip is fair
-      showBanner('GRAVITY FLIP!');
-      playSound('flip');
-    }
-  }
+// moonGravity: multiply the car's gravity by this.
+export function gravityScale() {
+  return TWISTS.moonGravity ? TWIST_SETTINGS.moonGravity : 1;
+}
 
-  // bossAppears: one giant slow UFO per game, starting at a certain score
-  if (TWISTS.bossAppears) {
-    if (!state.boss && !state.bossDone && state.score >= S.bossAtScore) {
-      state.boss = createBoss(state.gravity);
-      showBanner('BOSS INCOMING!');
-      playSound('boss');
-    }
-    if (state.boss && isBossGone(state.boss)) {
-      state.boss = null;
-      state.bossDone = true;
-      state.score += S.bossBonus;
-      showBanner(`BOSS DODGED! +${S.bossBonus}`);
-      playSound('bonus');
-    }
-  }
+// coinRain: extra chance for coin rows to appear.
+export function extraCoinChance() {
+  return TWISTS.coinRain ? TWIST_SETTINGS.coinRainChance : 0;
 }

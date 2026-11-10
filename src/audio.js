@@ -13,6 +13,7 @@ export function unlockAudio() {
 }
 
 export function toggleMute() { muted = !muted; }
+export function getAudio() { return audio; }   // music.js uses this to play notes
 export function isMuted() { return muted; }
 
 // One beep that slides from startHz to endHz. wave: 'sine', 'square', 'triangle' or 'sawtooth'.
@@ -31,13 +32,22 @@ function tone(startHz, endHz, seconds, wave = 'square', delay = 0) {
 }
 
 const SOUNDS = {
-  start:    () => { tone(330, 660, 0.12); tone(660, 990, 0.12, 'square', 0.1); },
-  hit:      () => { tone(300, 80, 0.25, 'sawtooth'); },                       // "bonk!"
-  levelUp:  () => { tone(523, 523, 0.1); tone(659, 659, 0.1, 'square', 0.1); tone(784, 1046, 0.2, 'square', 0.2); },
-  gameOver: () => { tone(392, 370, 0.25, 'triangle'); tone(330, 311, 0.25, 'triangle', 0.25); tone(262, 130, 0.6, 'triangle', 0.5); },
-  flip:     () => { tone(200, 1200, 0.35, 'sine'); },
-  boss:     () => { tone(90, 60, 0.8, 'sawtooth'); tone(120, 80, 0.8, 'square', 0.1); },
-  bonus:    () => { tone(784, 1568, 0.3, 'triangle'); },
+  start:      () => { tone(330, 660, 0.12); tone(660, 990, 0.12, 'square', 0.1); },
+  hit:        () => { tone(300, 80, 0.25, 'sawtooth'); },                       // "bonk!"
+  gameOver:   () => { tone(392, 370, 0.25, 'triangle'); tone(330, 311, 0.25, 'triangle', 0.25); tone(262, 130, 0.6, 'triangle', 0.5); },
+  jump:       () => { tone(300, 700, 0.18, 'square'); },
+  megaJump:   () => { tone(200, 1400, 0.45, 'square'); },
+  smash:      () => { tone(900, 120, 0.15, 'sawtooth'); tone(500, 90, 0.2, 'square', 0.03); },
+  bump:       () => { tone(180, 60, 0.2, 'square'); tone(700, 1200, 0.15, 'triangle', 0.08); },
+  coin:       () => { tone(988, 988, 0.06, 'square'); tone(1319, 1319, 0.12, 'square', 0.06); },
+  powerup:    () => { tone(523, 1046, 0.12); tone(659, 1318, 0.12, 'square', 0.1); tone(784, 1568, 0.2, 'square', 0.2); },
+  turbo:      () => { tone(100, 900, 0.5, 'sawtooth'); },
+  checkpoint: () => { tone(523, 523, 0.1); tone(659, 659, 0.1, 'square', 0.1); tone(784, 1046, 0.25, 'square', 0.2); },
+  zap:        () => { tone(1200, 400, 0.08, 'triangle'); },
+  pop:        () => { tone(600, 1800, 0.12, 'sine'); },
+  wave:       () => { tone(90, 60, 0.8, 'sawtooth'); tone(120, 80, 0.8, 'square', 0.1); },
+  bonus:      () => { tone(784, 1568, 0.3, 'triangle'); tone(1046, 2093, 0.3, 'triangle', 0.15); },
+  splat:      () => { tone(250, 90, 0.2, 'sine'); },
 };
 
 export function playSound(name) {
