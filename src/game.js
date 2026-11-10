@@ -49,7 +49,7 @@ export function updateGame(realDt) {
   }
 
   // move everything
-  if (updateHero(state.hero, dt, input)) bonk();   // scraped the ground: ouch!
+  if (updateHero(state.hero, dt, input)) bonk(CONFIG.damage.ground);   // scraped the ground: ouch!
   updateLasers(dt);
   if (state.boss && updateBoss(state.boss, dt)) {
     state.dinos.push(spawnDino(state.level, state.boss.x, state.boss.y + 60));
@@ -58,7 +58,7 @@ export function updateGame(realDt) {
   // a laser wall that reaches you: zap if you're inside it, points if you dodged it
   state.zapZones = state.zapZones.filter((z) => {
     const result = updateZapZone(z, dt, state.hero);
-    if (result === 'hit') bonk();
+    if (result === 'hit') bonk(CONFIG.damage.zapZone);
     if (result === 'passed') { state.score += CONFIG.zapZone.passPoints; playSound('bonus'); }
     return result === null;
   });
@@ -66,20 +66,20 @@ export function updateGame(realDt) {
   // a dino that reaches you bonks you and flies off
   state.dinos = state.dinos.filter((d) => {
     if (!updateDino(d, dt)) return true;
-    bonk();
+    bonk(CONFIG.damage.dino);
     return false;
   });
 
   if (state.banner && (state.banner.timeLeft -= realDt) <= 0) state.banner = null;
 }
 
-// Returns true if the hit counted (the hero wasn't blinking).
-function bonk() {
+// Takes away some health. Returns true if the hit counted (the hero wasn't blinking).
+function bonk(damage) {
   const hero = state.hero;
   if (hero.hurtTimer > 0 || state.screen !== 'playing') return false;
-  state.lives -= 1;
+  state.health = Math.max(0, state.health - damage);
   hero.hurtTimer = CONFIG.invincibleSeconds;
   playSound('hit');
-  if (state.lives <= 0) endRound();
+  if (state.health <= 0) endRound();
   return true;
 }

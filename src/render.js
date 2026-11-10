@@ -61,15 +61,24 @@ export function drawWorld(ctx) {
 export function drawHUD(ctx) {
   text(ctx, `SCORE ${Math.floor(state.score)}`, 24, 36, 32, CONFIG.colors.text, 'left');
   text(ctx, `LEVEL ${state.level}`, CONFIG.width / 2, 36, 32, CONFIG.colors.accent);
-  for (let i = 0; i < state.lives; i++) {   // one mini robot per life
-    ctx.save();
-    ctx.translate(CONFIG.width - 36 - i * 44, 40);
-    drawRobot(ctx, 30, 30);
-    ctx.restore();
-  }
+  drawHealthBar(ctx);
   if (state.boss) drawBossHealth(ctx, state.boss);
   if (isMuted()) text(ctx, 'MUTED (M)', CONFIG.width - 24, CONFIG.height - 20, 18, CONFIG.colors.silver, 'right');
   if (state.banner) text(ctx, state.banner.text, CONFIG.width / 2, CONFIG.height / 2, 64, CONFIG.colors.warning);
+}
+
+// Your health, 0 to 100: green when you're fine, red when you're almost out.
+function drawHealthBar(ctx) {
+  const w = 220, h = 28, x = CONFIG.width - 24 - w, y = 22;
+  const amount = state.health / CONFIG.health;
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = amount > 0.3 ? CONFIG.colors.healthGood : CONFIG.colors.healthLow;
+  ctx.fillRect(x, y, w * amount, h);
+  ctx.strokeStyle = CONFIG.colors.text;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x, y, w, h);
+  text(ctx, `HEALTH ${Math.ceil(state.health)}`, x + w / 2, y + h / 2 + 1, 18);
 }
 
 export function drawTitle(ctx) {

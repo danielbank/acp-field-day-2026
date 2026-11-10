@@ -29,7 +29,7 @@ export function resetRound() {
     bossesBeaten: 0,
     nextBossAt: CONFIG.boss.dinosToSummon,   // boss shows up when dinosBonked reaches this
     score: 0,
-    lives: CONFIG.lives,
+    health: CONFIG.health,
     level: 1,
     time: 0,
     spawnTimer: 0,

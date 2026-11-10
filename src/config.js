@@ -96,8 +96,13 @@ export const CONFIG = {
   secondsPerLevel: 15,            // Survive this many seconds to reach the next level
   spawnFasterPerLevel: 0.1,       // Each level, the wait between spawns shrinks by this many seconds
 
-  // ---- Lives & score ----
-  lives: 3,                       // How many bonks you can take
+  // ---- Health & score ----
+  health: 100,                    // Your health at the start (the game ends at 0)
+  damage: {                       // How much health each kind of bonk takes away
+    dino: 20,                     // A dino reaches you
+    zapZone: 25,                  // You fly into a laser wall
+    ground: 10,                   // You scrape the ground
+  },
   invincibleSeconds: 1.5,         // After a bonk, the hero blinks and can't be hit for this long
   scorePerSecond: 10,             // Points earned for every second you survive
 
@@ -107,6 +112,8 @@ export const CONFIG = {
     accent: '#c77dff',            // Purple for titles and highlights
     silver: '#c0c0d0',            // Silver for smaller text
     warning: '#ff7eb6',           // Color for "GAME OVER" and banners
+    healthGood: '#4ade80',        // Health bar color when you're doing great
+    healthLow: '#ff4d6d',         // Health bar color when you're almost out
   },
   font: 'system-ui, "Segoe UI", Arial, sans-serif', // Built-in fonts only (no downloads)
   text: {
