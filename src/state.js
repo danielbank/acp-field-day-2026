@@ -1,11 +1,13 @@
 // state.js — everything the game remembers, plus which screen we're on.
-// Screens: 'title' → 'playing' ⇄ 'paused' → 'gameover' → 'playing' …   Modes: 'race' or 'sandbox' (Free Play).
+// Screens: 'title' ⇄ 'shop', 'title' → 'playing' ⇄ 'paused' → 'gameover' …   Modes: 'race' or 'sandbox' (Free Play).
 
 import { CONFIG } from './config.js';
 import { SEG } from './road.js';
 import { createCar } from './entities/car.js';
 import { unlockAudio, playSound, toggleMute } from './audio.js';
 import { restartMusic } from './music.js';
+import { createGun } from './gatling.js';
+import { maxHealth, addCoins, shopAction, openShop } from './shop.js';
 
 const BEST_SCORE_KEY = 'robo-racer-best';
 
@@ -26,7 +28,14 @@ export function resetRound(mode = 'race') {
     particles: [],       // confetti
     popups: [],          // floating "+50" text
     score: 0,
-    lives: CONFIG.lives,
+    health: maxHealth(),
+    maxHealth: maxHealth(),
+    flash: 0,            // red screen flash when you get hurt
+    shots: [],           // goo from the gatling
+    gun: createGun(),
+    coinsThisRace: 0,    // shop coins grabbed this race
+    endCoins: 0,         // shop coins earned in total when the race ended
+    endedAt: 0,          // when the game ended (for the alarm lights)
     timeLeft: CONFIG.startTime,
     checkpoints: 0,
     level: 1,            // goes up at every checkpoint (things get closer together)
@@ -48,13 +57,18 @@ export function showBanner(text, seconds = 1.6, color = CONFIG.colors.warning) {
 export function endRound(reason) {
   state.screen = 'gameover';
   state.endReason = reason;
+  state.banner = null;
+  state.endedAt = performance.now() / 1000;
+  const bonusCoins = state.mode === 'race' ? Math.floor(state.score / CONFIG.shop.pointsPerBonusCoin) : 0;
+  addCoins(bonusCoins);
+  state.endCoins = state.coinsThisRace + bonusCoins;
   const finalScore = Math.floor(state.score);
   if (finalScore > state.best) {
     state.best = finalScore;
     state.isNewBest = true;
     try { localStorage.setItem(BEST_SCORE_KEY, String(finalScore)); } catch { /* storage blocked: fine */ }
   }
-  playSound('gameOver');
+  playSound('alarm');
 }
 
 function startRound(mode) {
@@ -67,13 +81,18 @@ function startRound(mode) {
 }
 
 // The screen state machine: what each action does on each screen.
-// Actions come from input.js: 'start', 'tap', 'freeplay', 'pause', 'quit', 'mute', 'blur' (+ driving actions in game.js).
+// Actions come from input.js: 'start', 'tap', 'freeplay', 'shop', 'up', 'down', 'pause', 'quit', 'mute', 'blur'
+// (+ driving actions in game.js).
 export function handleAction(action) {
   if (action === 'mute') return toggleMute();
   const screen = state.screen;
   if (screen === 'title' || screen === 'gameover') {
     if (action === 'start' || action === 'tap') startRound('race');
     if (action === 'freeplay') startRound('sandbox');
+    if (action === 'shop') { openShop(); state.screen = 'shop'; }
+  } else if (screen === 'shop') {
+    if (action === 'quit' || action === 'shop') state.screen = 'title';
+    else shopAction(action);
   } else if (action === 'quit') {
     state.screen = 'title';
   } else if (screen === 'playing' && (action === 'pause' || action === 'blur')) {

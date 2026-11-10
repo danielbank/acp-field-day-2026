@@ -1,5 +1,5 @@
-// aliens.js — alien blob waves: rows of wobbly blobs fly ahead of you, and you zap them with goo bubbles.
-// Steer to aim, hold SPACE to fire. Settings live in CONFIG.aliens.
+// aliens.js — alien blob waves: rows of wobbly blobs fly ahead of you and drop slime on the road.
+// Blast them with the goo gatling (gatling.js). Settings live in CONFIG.aliens.
 
 import { CONFIG } from '../config.js';
 
@@ -18,40 +18,19 @@ export function startWave(level) {
       });
     }
   }
-  return { blobs, bubbles: [], time: 0, timeLeft: A.waveSeconds, slimeTimer: A.slimeEverySeconds,
-           fireTimer: 0, leaving: 0 };
+  return { blobs, time: 0, timeLeft: A.waveSeconds, slimeTimer: A.slimeEverySeconds, leaving: 0 };
 }
 
-// Shoots one goo bubble straight ahead from the car.
-function fire(wave, car) {
-  wave.bubbles.push({ kind: 'bubble', x: car.x, ahead: 0, z: car.z, h: car.y + 250 });
-  wave.fireTimer = A.fireEverySeconds;
-}
-
-// Moves blobs and bubbles. Returns what happened this frame so game.js can react.
-export function updateWave(wave, car, dt, firing) {
-  const events = { fired: false, popped: [], slimes: [], cleared: false, gone: false };
+// Moves the blobs. Returns what happened this frame so game.js can react.
+export function updateWave(wave, car, dt) {
+  const events = { slimes: [], cleared: false, gone: false };
   wave.time += dt;
-  wave.fireTimer -= dt;
-  if (firing && wave.fireTimer <= 0 && !wave.leaving) { fire(wave, car); events.fired = true; }
-
   for (const b of wave.blobs) {
     const entering = Math.max(0, 1 - wave.time / 1.2) * 3000;   // swoop down at the start
     b.x = b.baseX + Math.sin(wave.time * A.swaySpeed + b.row) * A.sway;
     b.h = A.hoverHeight + entering + wave.leaving * 4000 + Math.sin(wave.time * 3 + b.phase) * 80;
     b.z = car.z + b.ahead;
   }
-
-  const hitW = (A.size / 2 + 120) / CONFIG.road.width;
-  wave.bubbles = wave.bubbles.filter((bub) => {
-    bub.ahead += A.bubbleSpeed * dt;
-    bub.z = car.z + bub.ahead;
-    bub.h = car.y + 250 + (A.hoverHeight + A.size * 0.3 - 250) * Math.min(1, bub.ahead / A.distanceAhead);
-    const target = wave.blobs.find((b) => b.alive && Math.abs(b.ahead - bub.ahead) < 500
-      && Math.abs(b.x - bub.x) < hitW);
-    if (target) { target.alive = false; events.popped.push(target); return false; }
-    return bub.ahead < A.distanceAhead + 4 * A.rowGap + 2000;
-  });
 
   const alive = wave.blobs.filter((b) => b.alive);
   wave.slimeTimer -= dt;
@@ -71,7 +50,7 @@ export function updateWave(wave, car, dt, firing) {
   return events;
 }
 
-// Everything in the wave that should be drawn on the road.
+// The blobs that should be drawn on the road.
 export function waveThings(wave) {
-  return wave ? [...wave.blobs.filter((b) => b.alive), ...wave.bubbles] : [];
+  return wave ? wave.blobs.filter((b) => b.alive) : [];
 }

@@ -5,10 +5,12 @@ import { CONFIG } from './config.js';
 import { state } from './state.js';
 import { isMuted } from './audio.js';
 import { cameraFor, drawRoad, projectOnRoad } from './road.js';
-import { LOOKS } from './entities/things.js';
+import { LOOKS, thingSize } from './entities/things.js';
 import { waveThings } from './entities/aliens.js';
 import { drawCarShape, drawHood } from './entities/car.js';
 import { drawEffects } from './effects.js';
+import { ballLit } from './shading.js';
+import { garage, paintColor } from './shop.js';
 
 const W = CONFIG.width;
 const H = CONFIG.height;
@@ -16,12 +18,18 @@ const fill = (str) => str.replace('{car}', CONFIG.car.name);
 const wrap = (v, size) => ((v % size) + size) % size;
 
 // Star positions are picked once so they don't jump around.
+const NEBULAS = [
+  { x: 300, y: 200, r: 320, color: 'rgba(199,125,255,0.16)' },
+  { x: 750, y: 260, r: 260, color: 'rgba(94,242,255,0.10)' },
+  { x: 1050, y: 150, r: 300, color: 'rgba(255,79,216,0.12)' },
+];
+
 const stars = Array.from({ length: CONFIG.space.starCount }, () => ({
   x: Math.random() * W, y: Math.random() * H * 0.75,
   size: 1 + Math.random() * 2, phase: Math.random() * 6, depth: 0.5 + Math.random() * 0.5,
 }));
 
-function text(ctx, str, x, y, size, color = CONFIG.colors.text, align = 'center') {
+export function text(ctx, str, x, y, size, color = CONFIG.colors.text, align = 'center') {
   ctx.font = `bold ${size}px ${CONFIG.font}`;
   ctx.textAlign = align;
   ctx.textBaseline = 'middle';
@@ -32,7 +40,7 @@ function text(ctx, str, x, y, size, color = CONFIG.colors.text, align = 'center'
   ctx.fillText(str, x, y);
 }
 
-function dimScreen(ctx, amount = 0.6) {
+export function dimScreen(ctx, amount = 0.6) {
   ctx.fillStyle = `rgba(0,0,0,${amount})`;
   ctx.fillRect(0, 0, W, H);
 }
@@ -44,6 +52,14 @@ export function drawBackground(ctx, seconds) {
   sky.addColorStop(1, S.bottomColor);
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, W, H);
+  for (const n of NEBULAS) {   // soft glowing space clouds
+    const x = wrap(n.x - state.skyX * 0.15, W + 600) - 300;
+    const g = ctx.createRadialGradient(x, n.y, 0, x, n.y, n.r);
+    g.addColorStop(0, n.color);
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(x - n.r, n.y - n.r, n.r * 2, n.r * 2);
+  }
   for (const p of S.planets) {
     const x = wrap(p.x - state.skyX * 0.3, W + 300) - 150;
     if (p.ring) {
@@ -53,7 +69,7 @@ export function drawBackground(ctx, seconds) {
       ctx.ellipse(x, p.y, p.size * 1.7, p.size * 0.45, -0.3, 0, Math.PI * 2);
       ctx.stroke();
     }
-    ctx.fillStyle = p.color;
+    ctx.fillStyle = ballLit(ctx, p.color, x, p.y, p.size);
     ctx.beginPath();
     ctx.arc(x, p.y, p.size, 0, Math.PI * 2);
     ctx.fill();
@@ -77,7 +93,7 @@ function drawPlayerCar(ctx, view) {
   ctx.save();
   ctx.translate(p.x, p.y - w * 0.25);
   ctx.rotate(car.spin * Math.sin(car.spin * 30) * 0.5);
-  drawCarShape(ctx, 0, w * 0.25, w, w * 0.55, C.bodyColor, C.stripeColor, car.turbo > 0);
+  drawCarShape(ctx, 0, w * 0.25, w, w * 0.55, car.color, C.stripeColor, car.turbo > 0);
   ctx.restore();
 }
 
@@ -91,8 +107,8 @@ export function drawWorld(ctx, seconds) {
     ctx.translate(-W / 2, -H / 2);
   }
   const view = drawRoad(ctx, cameraFor(car), seconds);
-  const list = [...state.things, ...waveThings(state.wave)];
-  if (!hoodView) list.push({ kind: 'player', z: car.z });
+  const list = [...state.things, ...waveThings(state.wave), ...state.shots];
+  if (!hoodView && !car.falling) list.push({ kind: 'player', z: car.z });
   list.sort((a, b) => b.z - a.z);   // far things first, near things on top
   for (const o of list) {
     if (o.kind === 'player') { drawPlayerCar(ctx, view); continue; }
@@ -104,13 +120,43 @@ export function drawWorld(ctx, seconds) {
     ctx.rect(0, 0, W, p.clip);   // hide the parts behind hills
     ctx.clip();
     ctx.globalAlpha = p.fade;
+    if (HAS_SHADOW.includes(o.kind)) drawShadow(ctx, view, o);
     LOOKS[o.kind](ctx, p, o, seconds, view);
     ctx.restore();
   }
   ctx.restore();
   if (car.turbo > 0) drawSpeedLines(ctx, seconds);
-  if (hoodView && state.screen !== 'title') drawHood(ctx, car, seconds);
+  const driving = ['playing', 'paused', 'gameover'].includes(state.screen);
+  if (hoodView && driving) drawHood(ctx, car, seconds, state.gun);
+  drawVignette(ctx);
+  if (state.flash > 0) {   // red "ouch" flash
+    ctx.fillStyle = `rgba(255,40,60,${state.flash})`;
+    ctx.fillRect(0, 0, W, H);
+  }
   drawEffects(ctx);
+}
+
+const HAS_SHADOW = ['rock', 'crate', 'cone', 'barrel', 'traffic', 'coin', 'powerup', 'blob'];
+
+// A soft dark oval on the road under a thing (it stays on the road when the thing floats or jumps).
+function drawShadow(ctx, view, o) {
+  const g = projectOnRoad(view, o.z, o.x, 0);
+  if (!g) return;
+  const w = (o.kind === 'blob' ? CONFIG.aliens.size : thingSize(o).w) * g.k;
+  const fade = Math.max(0.15, 1 - o.h / 3000);
+  ctx.fillStyle = `rgba(0,0,0,${0.4 * fade})`;
+  ctx.beginPath();
+  ctx.ellipse(g.x, g.y, w * 0.55 * fade, Math.max(1, w * 0.1 * fade), 0, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+// Darker corners, like a real camera lens.
+function drawVignette(ctx) {
+  const g = ctx.createRadialGradient(W / 2, H / 2, H * 0.45, W / 2, H / 2, W * 0.75);
+  g.addColorStop(0, 'rgba(0,0,0,0)');
+  g.addColorStop(1, 'rgba(0,0,0,0.55)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
 }
 
 function drawSpeedLines(ctx, seconds) {
@@ -131,14 +177,12 @@ export function drawHUD(ctx) {
   const c = CONFIG.colors;
   const car = state.car;
   text(ctx, `SCORE ${Math.floor(state.score)}`, 24, 36, 30, c.text, 'left');
+  if (state.mode === 'race') text(ctx, `COINS ${state.coinsThisRace}`, 24, 70, 20, CONFIG.things.coin.color, 'left');
   if (state.mode === 'race') {
     const t = Math.ceil(state.timeLeft);
     text(ctx, `${t}`, W / 2, 40, 52, t <= 10 ? c.warning : c.text);
     text(ctx, state.wave ? 'CLOCK PAUSED' : `CHECKPOINTS ${state.checkpoints}`, W / 2, 80, 18, c.silver);
-    for (let i = 0; i < Math.min(state.lives, 5); i++) {   // one mini car per life
-      drawCarShape(ctx, W - 44 - i * 52, 54, 40, 24, CONFIG.car.bodyColor, CONFIG.car.stripeColor);
-    }
-    if (state.lives > 5) text(ctx, `x${state.lives}`, W - 24, 84, 18, c.silver, 'right');
+    drawHealthBar(ctx);
   } else {
     text(ctx, CONFIG.text.freePlay, W / 2, 36, 36, c.good);
     text(ctx, CONFIG.text.freePlayHelp, W / 2, 72, 18, c.silver);
@@ -147,10 +191,11 @@ export function drawHUD(ctx) {
   // bottom left: speed and turbos
   text(ctx, `${Math.round((car.speed / CONFIG.car.maxSpeed) * 200)} km/h`, 24, H - 66, 26, c.text, 'left');
   text(ctx, 'TURBO', 24, H - 32, 18, c.silver, 'left');
-  for (let i = 0; i < CONFIG.car.turboMaxCharges; i++) {
+  for (let i = 0; i < car.turboMax; i++) {
     ctx.fillStyle = i < car.turboCharges ? CONFIG.powerups.turbo.color : 'rgba(255,255,255,0.2)';
     ctx.fillRect(90 + i * 22, H - 42, 16, 20);
   }
+  drawGunHeat(ctx);
 
   // bottom right: active powerups
   const badges = [];
@@ -163,16 +208,43 @@ export function drawHUD(ctx) {
   if (state.banner) text(ctx, state.banner.text, W / 2, H / 2 - 60, 52, state.banner.color);
 }
 
+// HEALTH bar in the top right: green when full, red when low.
+function drawHealthBar(ctx) {
+  const pct = state.health / state.maxHealth;
+  const x = W - 244;
+  const y = 22;
+  text(ctx, 'HEALTH', x + 220, y + 44, 16, CONFIG.colors.silver, 'right');
+  ctx.fillStyle = 'rgba(10,4,24,0.7)';
+  ctx.fillRect(x - 3, y - 3, 226, 26);
+  ctx.fillStyle = `hsl(${Math.round(120 * pct)}, 85%, 50%)`;
+  ctx.fillRect(x, y, 220 * pct, 20);
+  ctx.fillStyle = 'rgba(255,255,255,0.25)';   // shine on top
+  ctx.fillRect(x, y, 220 * pct, 6);
+  text(ctx, `${Math.ceil(state.health)}`, x + 110, y + 10, 16);
+}
+
+// GUN heat bar: fills up while you fire; at the top it overheats.
+function drawGunHeat(ctx) {
+  const gun = state.gun;
+  text(ctx, gun.overheated ? 'TOO HOT!' : 'GUN (X)', 24, H - 100, 16,
+    gun.overheated ? CONFIG.colors.warning : CONFIG.colors.silver, 'left');
+  ctx.fillStyle = 'rgba(255,255,255,0.2)';
+  ctx.fillRect(110, H - 108, 90, 14);
+  ctx.fillStyle = gun.overheated ? CONFIG.colors.warning : `hsl(${Math.round(190 - 190 * gun.heat)}, 90%, 55%)`;
+  ctx.fillRect(110, H - 108, 90 * gun.heat, 14);
+}
+
 export function drawTitle(ctx) {
   const t = CONFIG.text;
   const c = CONFIG.colors;
   dimScreen(ctx, 0.4);
   text(ctx, t.title, W / 2, 130, 100, c.accent);
   text(ctx, fill(t.subtitle), W / 2, 210, 34);
-  drawCarShape(ctx, W / 2, 380, 220, 120, CONFIG.car.bodyColor, CONFIG.car.stripeColor, true);
+  drawCarShape(ctx, W / 2, 380, 220, 120, paintColor(), CONFIG.car.stripeColor, true);
   text(ctx, t.start, W / 2, 470, 40);
   text(ctx, t.controls, W / 2, 540, 18, c.silver);
-  if (state.best > 0) text(ctx, `BEST ${state.best}`, W / 2, 590, 24, c.silver);
+  const best = state.best > 0 ? `BEST ${state.best}   ·   ` : '';
+  text(ctx, `${best}SHOP COINS ${garage.coins}`, W / 2, 590, 24, c.silver);
 }
 
 export function drawPaused(ctx) {
@@ -181,13 +253,24 @@ export function drawPaused(ctx) {
   text(ctx, CONFIG.text.resume, W / 2, H / 2 + 50, 36);
 }
 
-export function drawGameOver(ctx) {
+export function drawGameOver(ctx, seconds) {
   const t = CONFIG.text;
   dimScreen(ctx);
+  const sinceEnd = seconds - state.endedAt;
+  if (sinceEnd < 2.4 && Math.floor(sinceEnd * 5) % 2 === 0) {   // flashing red alarm lights
+    const g = ctx.createRadialGradient(W / 2, 0, 0, W / 2, 0, W * 0.8);
+    g.addColorStop(0, 'rgba(255,30,50,0.55)');
+    g.addColorStop(1, 'rgba(255,30,50,0.1)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+  }
   text(ctx, t.gameOver, W / 2, 140, 96, CONFIG.colors.warning);
   text(ctx, state.endReason, W / 2, 215, 32, CONFIG.colors.silver);
   text(ctx, `SCORE ${Math.floor(state.score)}`, W / 2, 290, 56);
   text(ctx, `BEST ${state.best}`, W / 2, 355, 36, CONFIG.colors.silver);
-  if (state.isNewBest) text(ctx, t.newBest, W / 2, 415, 40, CONFIG.colors.accent);
+  if (state.isNewBest) text(ctx, t.newBest, W / 2, 410, 40, CONFIG.colors.accent);
+  if (state.mode === 'race') {
+    text(ctx, t.coinsEarned.replace('{coins}', state.endCoins), W / 2, 450, 26, CONFIG.things.coin.color);
+  }
   text(ctx, t.playAgain, W / 2, 500, 36);
 }

@@ -17,14 +17,15 @@ export function getAudio() { return audio; }   // music.js uses this to play not
 export function isMuted() { return muted; }
 
 // One beep that slides from startHz to endHz. wave: 'sine', 'square', 'triangle' or 'sawtooth'.
-function tone(startHz, endHz, seconds, wave = 'square', delay = 0) {
+// loud: how many times louder than normal (the game-over alarm uses this).
+function tone(startHz, endHz, seconds, wave = 'square', delay = 0, loud = 1) {
   const t = audio.currentTime + delay;
   const osc = audio.createOscillator();
   const gain = audio.createGain();
   osc.type = wave;
   osc.frequency.setValueAtTime(startHz, t);
   osc.frequency.exponentialRampToValueAtTime(endHz, t + seconds);
-  gain.gain.setValueAtTime(CONFIG.volume, t);
+  gain.gain.setValueAtTime(Math.min(1, CONFIG.volume * loud), t);
   gain.gain.exponentialRampToValueAtTime(0.001, t + seconds);
   osc.connect(gain).connect(audio.destination);
   osc.start(t);
@@ -48,6 +49,15 @@ const SOUNDS = {
   wave:       () => { tone(90, 60, 0.8, 'sawtooth'); tone(120, 80, 0.8, 'square', 0.1); },
   bonus:      () => { tone(784, 1568, 0.3, 'triangle'); tone(1046, 2093, 0.3, 'triangle', 0.15); },
   splat:      () => { tone(250, 90, 0.2, 'sine'); },
+  gun:        () => { tone(260, 90, 0.05, 'square', 0, 0.5); },
+  fall:       () => { tone(900, 80, 1.3, 'sine'); },
+  tow:        () => { tone(200, 900, 0.5, 'triangle'); tone(400, 1800, 0.5, 'sine', 0.1); },
+  alarm:      () => {                                                      // WEE-OO WEE-OO!
+    for (let i = 0; i < 4; i++) {
+      tone(650, 1300, 0.3, 'sawtooth', i * 0.6, CONFIG.alarmLoudness);
+      tone(1300, 650, 0.3, 'sawtooth', i * 0.6 + 0.3, CONFIG.alarmLoudness);
+    }
+  },
 };
 
 export function playSound(name) {

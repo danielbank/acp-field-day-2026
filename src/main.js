@@ -6,6 +6,7 @@ import { state, handleAction } from './state.js';
 import { setupInput, takeActions } from './input.js';
 import { updateGame, gameAction } from './game.js';
 import { updateMusic } from './music.js';
+import { drawShop } from './shopScreen.js';
 import { drawBackground, drawWorld, drawHUD, drawTitle, drawPaused, drawGameOver } from './render.js';
 
 const MAX_DT = 1 / 20;   // if the computer hiccups, don't let things teleport
@@ -28,9 +29,10 @@ function draw(seconds) {
   drawBackground(ctx, seconds);
   drawWorld(ctx, seconds);
   if (state.screen === 'title') return drawTitle(ctx);
+  if (state.screen === 'shop') return drawShop(ctx);
   drawHUD(ctx);
   if (state.screen === 'paused') drawPaused(ctx);
-  if (state.screen === 'gameover') drawGameOver(ctx);
+  if (state.screen === 'gameover') drawGameOver(ctx, seconds);
 }
 
 let lastTime = performance.now();
@@ -42,7 +44,7 @@ function frame(now) {
     handleAction(action);                                            // start, pause, menus…
   }
   if (state.screen === 'playing') updateGame(dt);
-  if (state.screen === 'title') state.car.z += 4000 * dt;          // cruise along behind the title
+  if (state.screen === 'title' || state.screen === 'shop') state.car.z += 4000 * dt;          // cruise along behind the title
   updateMusic(state.screen === 'playing', Boolean(state.wave));
   draw(now / 1000);
   requestAnimationFrame(frame);

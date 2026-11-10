@@ -4,6 +4,7 @@
 import { CONFIG } from '../config.js';
 import { projectOnRoad } from '../road.js';
 import { drawCarShape } from './car.js';
+import { shade, topLit, ballLit } from '../shading.js';
 
 const T = CONFIG.things;
 
@@ -44,7 +45,7 @@ function friendlyEyes(ctx, x, y, r) {   // two little eyes (r = size of the face
 function drawRock(ctx, p, o) {
   const r = (T.rock.size / 2) * p.k;
   const ry = T.rock.height * p.k * 0.55;
-  ctx.fillStyle = T.rock.color;
+  ctx.fillStyle = ballLit(ctx, T.rock.color, p.x, p.y - ry, r);
   ctx.strokeStyle = T.rock.outlineColor;
   ctx.lineWidth = Math.max(1, r * 0.06);
   ctx.beginPath();
@@ -83,7 +84,7 @@ function drawHole(ctx, p, o, seconds, view) {
 
 function drawCrate(ctx, p) {
   const s = T.crate.size * p.k;
-  ctx.fillStyle = T.crate.color;
+  ctx.fillStyle = topLit(ctx, T.crate.color, p.y - s, p.y);
   ctx.fillRect(p.x - s / 2, p.y - s, s, s);
   ctx.strokeStyle = '#6b4219';
   ctx.lineWidth = Math.max(1, s * 0.07);
@@ -98,7 +99,10 @@ function drawCrate(ctx, p) {
 
 function drawCone(ctx, p) {
   const s = T.cone.size * p.k;
-  ctx.fillStyle = T.cone.color;
+  const coneShade = ctx.createLinearGradient(p.x - s * 0.4, 0, p.x + s * 0.4, 0);
+  coneShade.addColorStop(0, shade(T.cone.color, 0.3));
+  coneShade.addColorStop(1, shade(T.cone.color, -0.4));
+  ctx.fillStyle = coneShade;
   ctx.beginPath();
   ctx.moveTo(p.x - s * 0.4, p.y - s * 0.12);
   ctx.lineTo(p.x, p.y - s * 1.3);
@@ -113,7 +117,11 @@ function drawCone(ctx, p) {
 function drawBarrel(ctx, p) {
   const s = T.barrel.size * p.k;
   const h = s * 1.25;
-  ctx.fillStyle = T.barrel.color;
+  const round = ctx.createLinearGradient(p.x - s / 2, 0, p.x + s / 2, 0);
+  round.addColorStop(0, shade(T.barrel.color, -0.4));
+  round.addColorStop(0.35, shade(T.barrel.color, 0.35));
+  round.addColorStop(1, shade(T.barrel.color, -0.55));
+  ctx.fillStyle = round;
   ctx.fillRect(p.x - s / 2, p.y - h, s, h);
   ctx.fillStyle = 'rgba(0,0,0,0.3)';
   ctx.fillRect(p.x - s / 2, p.y - h * 0.75, s, h * 0.08);
@@ -136,7 +144,7 @@ function drawTraffic(ctx, p, o) {
 function drawCoin(ctx, p, o, seconds) {
   const r = (T.coin.size / 2) * p.k;
   const squish = Math.abs(Math.cos(seconds * 4 + o.z * 0.001));
-  ctx.fillStyle = T.coin.color;
+  ctx.fillStyle = ballLit(ctx, T.coin.color, p.x, p.y - r, r);
   ctx.strokeStyle = '#b8860b';
   ctx.lineWidth = Math.max(1, r * 0.15);
   ctx.beginPath();
@@ -261,7 +269,7 @@ function drawGate(ctx, p, o, seconds, view) {
 function drawBlob(ctx, p, o, seconds) {
   const r = (CONFIG.aliens.size / 2) * p.k;
   const wob = Math.sin(seconds * 6 + o.phase) * 0.08;
-  ctx.fillStyle = o.color;
+  ctx.fillStyle = ballLit(ctx, o.color, p.x, p.y - r, r);
   ctx.beginPath();
   ctx.ellipse(p.x, p.y - r, r * (1 + wob), r * (1 - wob), 0, 0, Math.PI * 2);
   ctx.fill();
@@ -279,17 +287,18 @@ function drawBlob(ctx, p, o, seconds) {
   ctx.stroke();
 }
 
-function drawBubble(ctx, p) {
-  const r = 120 * p.k;
-  ctx.globalAlpha *= 0.8;
-  circle(ctx, p.x, p.y - r, r, CONFIG.aliens.bubbleColor);
-  circle(ctx, p.x - r * 0.35, p.y - r * 1.35, r * 0.3, '#ffffff');
-  ctx.globalAlpha /= 0.8;
+function drawShot(ctx, p) {   // one glob of goo from the gatling
+  const r = Math.max(2, 70 * p.k);
+  ctx.shadowColor = CONFIG.gatling.shotColor;
+  ctx.shadowBlur = 10;
+  circle(ctx, p.x, p.y - r, r, CONFIG.gatling.shotColor);
+  ctx.shadowBlur = 0;
+  circle(ctx, p.x - r * 0.3, p.y - r * 1.3, r * 0.35, '#ffffff');
 }
 
 // How each kind is drawn. (p = where it is on screen; p.k = pixels per world unit)
 export const LOOKS = {
   rock: drawRock, hole: drawHole, crate: drawCrate, cone: drawCone, barrel: drawBarrel,
   traffic: drawTraffic, coin: drawCoin, powerup: drawPowerup, ramp: drawRamp,
-  slime: drawSlime, gate: drawGate, blob: drawBlob, bubble: drawBubble,
+  slime: drawSlime, gate: drawGate, blob: drawBlob, shot: drawShot,
 };

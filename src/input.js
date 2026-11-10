@@ -3,15 +3,16 @@
 
 import { CONFIG } from './config.js';
 
-export const input = { left: false, right: false, up: false, down: false, fire: false, pointerX: null };
+export const input = { left: false, right: false, up: false, down: false, fire: false, gun: false, pointerX: null };
 
 const actions = [];
 const HOLD_KEYS = {
   ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right',
-  ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', Space: 'fire',
+  ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', Space: 'fire', KeyX: 'gun',
 };
 const ACTION_KEYS = {
-  Space: 'start', Enter: 'start', KeyP: 'pause', KeyM: 'mute', KeyF: 'freeplay', Escape: 'quit',
+  Space: 'start', Enter: 'start', KeyP: 'pause', KeyM: 'mute', KeyF: 'freeplay', Escape: 'quit', KeyC: 'shop',
+  ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down',
   ShiftLeft: 'turbo', ShiftRight: 'turbo',
   Digit1: 'spawn1', Digit2: 'spawn2', Digit3: 'spawn3', Digit4: 'spawn4', Digit5: 'spawn5',
 };

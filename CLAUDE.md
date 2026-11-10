@@ -51,6 +51,10 @@ Don't go down a rabbit hole while the class waits. A working game beats a clever
 | `src/road.js` | Endless road shape (`curveAt`, `hillAt`), camera, fake-3D road drawing, `projectOnRoad()` |
 | `src/spawner.js` | What appears on the road ahead (`MAKERS`), Free Play spawn keys |
 | `src/powerups.js` | Star (2X), turbo, spring (mega jump), magnet; `addPoints()` |
+| `src/gatling.js` | Goo gatling (hold X): shots, heat/overheat, what goo hits |
+| `src/shop.js` | Car Shop: saved coins + upgrade levels (`garage`), buying, upgrade helpers (`topSpeed()`, `maxHealth()`…) |
+| `src/shopScreen.js` | Draws the Car Shop screen |
+| `src/shading.js` | Color helpers for the 3D look: `shade()`, `topLit()`, `ballLit()` |
 | `src/effects.js` | Confetti `burst()` and floating `popup()` text |
 | `src/music.js` | Background music sequencer (notes come from `CONFIG.music`) |
 | `src/twists.js` | The three optional `TWISTS` (each a small helper guarded by its boolean) |
@@ -69,7 +73,8 @@ Patterns to follow:
 - New twist → add a boolean to `TWISTS` (default `false`), settings to `TWIST_SETTINGS`, a helper in `twists.js`.
 - New on-screen text → put the string in `CONFIG.text`.
 - New per-round value → add it to `resetRound()` in `state.js` so restarts work.
-- Screens are `'title' | 'playing' | 'paused' | 'gameover'`; transitions live only in `handleAction()`.
+- New shop item → add it to `CONFIG.shop.items`, then use `levelOf('id')` where it should have an effect (see `shop.js`).
+- Screens are `'title' | 'shop' | 'playing' | 'paused' | 'gameover'`; transitions live only in `handleAction()`.
 
 Style: plain ES modules, no frameworks, no TypeScript, short readable functions,
 a 1–2 line header comment on every file. Keep each file small and single-purpose.
@@ -78,5 +83,5 @@ a 1–2 line header comment on every file. Keep each file small and single-purpo
 
 - `npm run check` — both builds must pass. Do this before every commit.
 - The presenter usually has `npm run dev` open; Vite reloads the page automatically on save.
-- In dev, `window.game` is the live game state (e.g. `game.lives = 99`, `game.timeLeft = 999`,
+- In dev, `window.game` is the live game state (e.g. `game.health = 999`, `game.timeLeft = 999`,
   `game.car.z = game.nextCheckpointZ - 20000` to jump near a checkpoint) — handy for showing a change quickly.

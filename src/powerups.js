@@ -14,7 +14,7 @@ export function applyPowerup(kind) {
   if (kind === 'magnet') powers.magnet = P.seconds;
   if (kind === 'spring') powers.spring = true;
   if (kind === 'turbo') {
-    state.car.turboCharges = Math.min(CONFIG.car.turboMaxCharges, state.car.turboCharges + 1);
+    state.car.turboCharges = Math.min(state.car.turboMax, state.car.turboCharges + 1);
   }
   showBanner(CONFIG.text[kind], 1.2);
   playSound('powerup');

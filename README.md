@@ -37,8 +37,8 @@ commits it with a plain-English message, and tells the class how to see it (rule
 - See what the class built: `git log --oneline`.
 - `main` stays as the clean starter for the next class.
 
-Controls: ← → / A D steer · ↑ / W gas · ↓ / S brake · Space jump (hold to zap alien blobs) · Shift turbo ·
-F Free Play · 1–5 spawn things in Free Play · Esc menu · P pause · M mute. Touch: hold to drive, slide to steer, tap to jump.
+Controls: ← → / A D steer · ↑ / W gas · ↓ / S brake · Space jump · X goo gatling (Space works too in alien waves) ·
+Shift turbo · C Car Shop · F Free Play · 1–5 spawn things in Free Play · Esc menu · P pause · M mute. Touch: hold to drive, slide to steer, tap to jump.
 The game auto-pauses when the browser window loses focus (e.g. when you click into the terminal).
 
 ## Offline fallback

@@ -1,5 +1,5 @@
-// game.js — the rules of a round: driving, the clock, checkpoints, smashing, bonks, powerups and alien waves.
-// updateGame() runs every frame while playing; gameAction() handles jump / zap / turbo / spawn presses.
+// game.js — the rules of a round: driving, the clock, checkpoints, smashing, health, falling, the gatling and alien waves.
+// updateGame() runs every frame while playing; gameAction() handles jump / turbo / spawn presses.
 
 import { CONFIG } from './config.js';
 import { state, showBanner, endRound } from './state.js';
@@ -9,8 +9,10 @@ import { SEG, curveAt } from './road.js';
 import { updateCar, jumpCar, useTurbo } from './entities/car.js';
 import { thingSize, makeThing } from './entities/things.js';
 import { startWave, updateWave } from './entities/aliens.js';
+import { updateGatling } from './gatling.js';
 import { spawnAhead, spawnNearby } from './spawner.js';
 import { applyPowerup, tickPowerups, addPoints, pullCoins } from './powerups.js';
+import { addCoins } from './shop.js';
 import { burst, popup, updateEffects } from './effects.js';
 
 const T = CONFIG.things;
@@ -30,7 +32,7 @@ export function gameAction(action) {
     }
     return true;
   }
-  if (action === 'start' || action === 'tap') return true;   // in a wave: holding SPACE fires
+  if (action === 'start' || action === 'tap') return true;   // in a wave: holding SPACE fires the gatling
   if (action === 'turbo') {
     if (useTurbo(car)) { playSound('turbo'); showBanner('TURBO!', 0.8, CONFIG.colors.good); }
     return true;
@@ -50,14 +52,16 @@ export function updateGame(dt) {
   for (const o of state.things) o.before = o.z - lastCarZ;   // to tell when we drive past something
 
   updateCar(car, dt, input);
+  updateFalling(dt);
   tickPowerups(dt);
   pullCoins(dt);
   moveThings(dt);
   spawnAhead();
-  checkHits();
+  if (!car.falling) checkHits();
   updateClockAndCheckpoints(dt);
   if (state.waveIn > 0 && (state.waveIn -= dt) <= 0 && !state.wave) beginWave();
   if (state.wave) updateAliens(dt);
+  updateGun(dt);
 
   // score for driving, and stars sliding sideways on curves
   const pct = car.speed / CONFIG.car.maxSpeed;
@@ -65,8 +69,32 @@ export function updateGame(dt) {
   state.skyX += curveAt(Math.floor(car.z / SEG)) * pct * dt * 25;
 
   state.things = state.things.filter((o) => !o.gone && o.z > car.z - 3000);
+  state.flash = Math.max(0, state.flash - dt);
   updateEffects(dt);
   if (state.banner && (state.banner.timeLeft -= dt) <= 0) state.banner = null;
+}
+
+// Drive off the edge of the road and you tumble into space… until the tow beam drops you back on.
+function updateFalling(dt) {
+  const car = state.car;
+  if (car.falling > 0) {
+    car.falling -= dt;
+    if (car.falling <= 0) towBack(car);
+  } else if (car.y <= 0 && Math.abs(car.x) > CONFIG.car.edge) {
+    car.falling = CONFIG.car.fallSeconds;
+    car.y = -1;
+    car.vy = 0;
+    playSound('fall');
+    popup('WHOOOOAAA!', CONFIG.width / 2, 260, CONFIG.colors.warning);
+  }
+}
+
+function towBack(car) {
+  Object.assign(car, { falling: 0, x: 0, y: 900, vy: 0, spin: 0, hurt: CONFIG.invincibleSeconds });
+  car.speed = Math.max(car.speed, 3000);
+  playSound('tow');
+  showBanner(CONFIG.text.towBeam, 1.4);
+  takeDamage(CONFIG.health.fallDamage);
 }
 
 function moveThings(dt) {
@@ -114,41 +142,48 @@ function checkHits() {
     }
     if (!touching(o)) continue;
     if (o.kind === 'rock' || (o.kind === 'slime' && o.h === 0)) bonk(o);
-    else if (o.kind === 'crate' || o.kind === 'cone' || o.kind === 'barrel') smash(o);
-    else if (o.kind === 'traffic') bumpTraffic(o);
-    else if (o.kind === 'coin') collect(o, T.coin.points, 'coin');
+    else if (o.kind === 'crate' || o.kind === 'cone' || o.kind === 'barrel') smash(o, false);
+    else if (o.kind === 'traffic') bumpTraffic(o, false);
+    else if (o.kind === 'coin') collectCoin(o);
     else if (o.kind === 'powerup') { o.gone = true; applyPowerup(o.power); burst(o.screen?.x ?? 480, o.screen?.y ?? 450, 24); }
   }
 }
 
-function collect(o, points, sound) {
-  o.gone = true;
+function pointsPopup(o, points, colors, label = '+') {
   const gained = addPoints(points);
-  playSound(sound);
   if (o.screen) {
-    burst(o.screen.x, o.screen.y, 8, DEBRIS[o.kind] || DEBRIS.coin);
-    popup(`+${gained}`, o.screen.x, o.screen.y - 30, CONFIG.colors.text);
+    burst(o.screen.x, o.screen.y - 20, 18, colors);
+    popup(`${label}${gained}`, o.screen.x, o.screen.y - 40, CONFIG.colors.text);
   }
 }
 
-function smash(o) {
-  const turbo = state.car.turbo > 0 ? CONFIG.turboSmashBonus : 1;
-  collect(o, T[o.kind].points * turbo, 'smash');
-  if (o.screen) burst(o.screen.x, o.screen.y - 20, 22, DEBRIS[o.kind]);
-  state.car.speed *= 0.92;
+function collectCoin(o) {
+  o.gone = true;
+  playSound('coin');
+  pointsPopup(o, T.coin.points, DEBRIS.coin);
+  if (state.mode === 'race') {
+    state.coinsThisRace += CONFIG.shop.coinValue;
+    addCoins(CONFIG.shop.coinValue);
+  }
 }
 
-function bumpTraffic(o) {
+// Crates, cones and barrels burst into confetti. (byGoo = blasted by the gatling, so you don't slow down)
+function smash(o, byGoo) {
+  o.gone = true;
+  playSound('smash');
+  pointsPopup(o, T[o.kind].points * (state.car.turbo > 0 ? CONFIG.turboSmashBonus : 1), DEBRIS[o.kind]);
+  if (!byGoo) state.car.speed *= 0.92;
+}
+
+function bumpTraffic(o, byGoo) {
   const side = o.x >= state.car.x ? 1 : -1;
   o.flying = { vx: side * 3, vy: 2500, angle: 0, spin: side * 8, time: 1.2 };
-  const turbo = state.car.turbo > 0 ? CONFIG.turboSmashBonus : 1;
-  const gained = addPoints(T.traffic.points * turbo);
   playSound('bump');
-  if (o.screen) popup(`BONK! +${gained}`, o.screen.x, o.screen.y - 60, CONFIG.colors.good);
-  state.car.speed *= 0.85;
+  pointsPopup(o, T.traffic.points * (state.car.turbo > 0 ? CONFIG.turboSmashBonus : 1), [o.color, '#ffffff'], 'BONK! +');
+  if (!byGoo) state.car.speed *= 0.85;
 }
 
-// Ouch! Lose a life (not in Free Play), spin out and slow down.
+// Ouch! Lose some health, spin out and slow down.
 function bonk(o) {
   const car = state.car;
   if (car.hurt > 0) return;
@@ -161,13 +196,19 @@ function bonk(o) {
     if (o.screen) burst(o.screen.x, o.screen.y - 20, 16, DEBRIS.rock);
   }
   playSound('hit');
-  if (state.mode === 'sandbox') return;
-  state.lives -= 1;
-  if (state.lives <= 0) endRound(CONFIG.text.outOfLives);
+  takeDamage(CONFIG.health[`${o.kind}Damage`] ?? 20);
+}
+
+// Free Play never hurts. In a race, empty health = game over.
+function takeDamage(amount) {
+  if (state.mode === 'sandbox' || state.screen !== 'playing') return;
+  state.health = Math.max(0, state.health - amount);
+  state.flash = 0.35;   // red flash on the screen
+  if (state.health <= 0) endRound(CONFIG.text.outOfHealth);
 }
 
 function updateClockAndCheckpoints(dt) {
-  if (state.mode !== 'race') return;
+  if (state.mode !== 'race' || state.screen !== 'playing') return;
   if (!state.wave) state.timeLeft -= dt;   // the clock pauses while you fight alien blobs
   if (state.timeLeft <= 0) {
     state.timeLeft = 0;
@@ -197,17 +238,7 @@ function beginWave() {
 
 function updateAliens(dt) {
   const A = CONFIG.aliens;
-  const firing = input.fire || input.pointerX !== null;
-  const events = updateWave(state.wave, state.car, dt, firing);
-  if (events.fired) playSound('zap');
-  for (const b of events.popped) {
-    const gained = addPoints(A.points);
-    playSound('pop');
-    if (b.screen) {
-      burst(b.screen.x, b.screen.y, 26, [b.color, '#ffffff']);
-      popup(`+${gained}`, b.screen.x, b.screen.y - 40, b.color);
-    }
-  }
+  const events = updateWave(state.wave, state.car, dt);
   for (const s of events.slimes) {
     state.things.push(makeThing('slime', s.z, s.x, { h: s.h, vz: state.car.speed + 4500 }));
     playSound('splat');
@@ -217,9 +248,35 @@ function updateAliens(dt) {
     showBanner(CONFIG.text.waveCleared.replace('{points}', gained), 2, CONFIG.colors.good);
     playSound('bonus');
     burst(480, 250, 60);
+    if (state.mode === 'race') {
+      state.coinsThisRace += CONFIG.shop.waveBonusCoins;
+      addCoins(CONFIG.shop.waveBonusCoins);
+    }
     state.wave = null;
   } else if (events.gone) {
     showBanner(CONFIG.text.waveEscaped, 1.6);
     state.wave = null;
   }
+}
+
+// Hold X (or SPACE / touch during alien waves) to fire the goo gatling.
+function updateGun(dt) {
+  const firing = input.gun || (state.wave && (input.fire || input.pointerX !== null));
+  const events = updateGatling(state, dt, firing && !state.car.falling);
+  if (events.fired) playSound('gun');
+  for (const o of events.hits) {
+    if (o.kind === 'blob') popBlob(o);
+    else if (o.kind === 'traffic') bumpTraffic(o, true);
+    else if (o.kind === 'rock') {
+      o.gone = true;
+      playSound('smash');
+      pointsPopup(o, CONFIG.gatling.rockPoints, DEBRIS.rock);
+    } else smash(o, true);
+  }
+}
+
+function popBlob(b) {
+  b.alive = false;
+  playSound('pop');
+  pointsPopup(b, CONFIG.aliens.points, [b.color, '#ffffff']);
 }

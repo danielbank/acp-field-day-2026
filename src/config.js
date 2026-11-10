@@ -46,8 +46,9 @@ export const CONFIG = {
     brakes: 10000,                // How fast you slow down when you brake
     coastSlowdown: 2500,          // How fast you slow down when you let go of gas
     steering: 2.5,                // How fast you slide left and right
-    curvePull: 0.25,              // How hard curves push you toward the outside
-    offRoadMaxSpeed: 3500,        // Space dust off the road slows you to this speed
+    curvePull: 0.12,              // How hard curves push you toward the outside (too high = you fly off!)
+    edge: 1.2,                    // Drive farther than this from the middle and you fall off (1 = road edge)
+    fallSeconds: 1.4,             // How long you tumble through space before the tow beam grabs you
     jumpPower: 3000,              // How high you jump
     gravity: 7000,                // How fast you fall back down
     turboSpeed: 1.5,              // Turbo top speed (1.5 = 50% faster)
@@ -65,7 +66,13 @@ export const CONFIG = {
   autoGas: false,                 // true = the car drives forward by itself (no need to hold ↑)
 
   // ---- Lives, time & score ----
-  lives: 3,                       // How many bonks you can take
+  health: {
+    max: 100,                     // Full health (the Car Shop's armor adds more)
+    rockDamage: 25,               // Bonking a space rock
+    holeDamage: 30,               // Driving into a space hole
+    slimeDamage: 15,              // Driving through blob slime
+    fallDamage: 40,               // Falling off the road into space
+  },
   invincibleSeconds: 1.5,         // After a bonk you can't be bonked again for this long
   startTime: 45,                  // Seconds on the clock when the race starts
   checkpointEverySegments: 1100,  // Distance between checkpoints (in road chunks)
@@ -131,9 +138,35 @@ export const CONFIG = {
     points: 75,                   // Points per zapped blob
     clearBonus: 500,              // Bonus for zapping ALL of them
     colors: ['#7cff6b', '#ff7eb6', '#5ef2ff', '#ffd23f'],
-    bubbleColor: '#7df9ff',       // Goo bubble color
-    bubbleSpeed: 16000,           // How fast goo bubbles fly
-    fireEverySeconds: 0.18,       // Hold SPACE: one bubble every this many seconds
+  },
+
+  // ---- The goo gatling on your hood (hold X, or SPACE during alien waves) ----
+  gatling: {
+    fireEverySeconds: 0.08,       // Time between goo shots (smaller = faster)
+    shotSpeed: 18000,             // How fast the goo flies
+    spread: 0.04,                 // How wobbly the aim is
+    heatPerShot: 0.035,           // Each shot heats the gun up (it overheats at 1)
+    coolPerSecond: 0.45,          // How fast it cools down
+    shotColor: '#7df9ff',         // Goo color
+    rockPoints: 20,               // Points for blasting a space rock
+  },
+
+  // ---- Car Shop: coins you grab in races are saved and spent here ----
+  shop: {
+    coinValue: 1,                 // Shop coins for each coin you grab (races only)
+    pointsPerBonusCoin: 200,      // Bonus shop coins at the end of a race: 1 per this many points
+    waveBonusCoins: 10,           // Shop coins for blasting a whole alien wave
+    engineBoost: 0.08,            // Each engine upgrade: +8% top speed
+    armorHealth: 25,              // Each armor upgrade: +25 max health
+    gatlingBoost: 0.25,           // Each gatling upgrade: shoots 25% faster and cooler
+    paints: ['#ff4f6d', '#3ddc97', '#ffd23f', '#4f8bff', '#f2ecff'], // Paint jobs, in order
+    items: [
+      { id: 'engine',  name: 'Faster Engine',   about: '+8% top speed',            prices: [30, 60, 120] },
+      { id: 'armor',   name: 'Tough Armor',     about: '+25 max health',           prices: [25, 50, 100] },
+      { id: 'gatling', name: 'Gatling Upgrade', about: 'shoots faster, stays cool', prices: [40, 80, 160] },
+      { id: 'turbo',   name: 'Extra Turbo',     about: '+1 turbo every race',      prices: [20, 40, 80] },
+      { id: 'paint',   name: 'New Paint Job',   about: 'a fresh color',            prices: [15, 15, 15, 15, 15] },
+    ],
   },
 
   // ---- Colors & text ----
@@ -147,20 +180,24 @@ export const CONFIG = {
   text: {
     title: 'ROBO RACER',
     subtitle: 'Drive {car} down the Space Highway!',  // {car} gets filled in automatically
-    start: 'SPACE = Race      F = Free Play',
-    controls: '← → steer · ↑ gas · ↓ brake · SPACE jump/zap · SHIFT turbo · P pause · M mute',
+    start: 'SPACE = Race    F = Free Play    C = Car Shop',
+    controls: '← → steer · ↑ gas · ↓ brake · SPACE jump · X gatling · SHIFT turbo · P pause · M mute',
     freePlayHelp: '1 crates · 2 car · 3 ramp · 4 coins · 5 aliens · ESC menu',
     freePlay: 'FREE PLAY',
     paused: 'PAUSED',
     resume: 'Press P to keep driving',
     gameOver: 'GAME OVER',
-    playAgain: 'SPACE = race again   ·   F = Free Play',
+    playAgain: 'SPACE = race again  ·  F = Free Play  ·  C = Car Shop',
+    coinsEarned: '+{coins} shop coins',
     newBest: 'NEW BEST SCORE!',
     timeUp: 'Time ran out!',
-    outOfLives: 'Out of bonks!',
+    outOfHealth: 'Out of health!',
+    towBeam: 'WHOOPS! TOW BEAM!',
+    shopTitle: 'CAR SHOP',
+    shopHelp: '↑ ↓ choose  ·  SPACE buy  ·  ESC back',
     go: 'GO!',
     checkpoint: 'CHECKPOINT! +{time}s',
-    waveStart: 'ALIEN BLOBS! HOLD SPACE TO ZAP!',
+    waveStart: 'ALIEN BLOBS! HOLD X OR SPACE TO BLAST!',
     waveCleared: 'ALL BLOBS ZAPPED! +{points}',
     waveEscaped: 'The blobs flew away!',
     star: '2X POINTS!',
@@ -172,6 +209,7 @@ export const CONFIG = {
   // ---- Sound ----
   soundOn: true,                  // Start with sound on? (M toggles it during the game)
   volume: 0.25,                   // How loud sound effects are (0 = silent, 1 = LOUD)
+  alarmLoudness: 2.5,             // The game-over alarm is this many times louder than other sounds
 
   // ---- Music: compose it! Each spot is one short step. '-' = rest (silence). ----
   // Notes are a letter + octave: 'C4', 'D#4', 'Bb3'… bigger number = higher. Lists can be any length.
