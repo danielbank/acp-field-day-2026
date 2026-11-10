@@ -22,8 +22,8 @@ export const CONFIG = {
 
   // ---- The cockpit: you ride a flying skateboard, flappy-style ----
   cockpit: {
-    gravity: 900,                 // How hard you sink (bigger = fall faster)
-    flapStrength: 380,            // How big a boost each SPACE press gives you
+    gravity: 400,                 // How hard you sink (bigger = fall faster)
+    flapStrength: 280,            // How big a boost each SPACE press gives you
     startHeight: 300,             // How high you start
     maxHeight: 600,               // You can't fly higher than this
     aimSpeed: 600,                // How fast the arrow keys move the crosshair
